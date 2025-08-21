@@ -4,13 +4,13 @@
 body {
   font-family: Arial, sans-serif;
   margin: 0;
-  background: #f7f9fc;   /* light background stays */
+  background: #ffffff;   /* light background stays */
   color: #333;
 }
 
 /* Top nav */
 nav {
-  background: #dc3545;   /* red nav bar */
+  background: #0d3b66;   /* deep blue from logo */
   padding: 1rem;
   text-align: center;
 }
@@ -24,7 +24,7 @@ nav a {
 
 nav a:hover {
   text-decoration: underline;
-  color: #ffe6e6;        /* lighter hover color on red */
+  color: #f4d35e;        /* gold accent on hover */
 }
 
 /* Page content */
@@ -41,4 +41,21 @@ main { padding: 2rem; }
   padding: 2rem;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Logo styling */
+.logo {
+  height: 80px;          /* control logo size */
+  vertical-align: middle;
+  text-decoration: none;       /* remove underline */
+}
+
+.logo-link {
+  margin-right: -.3rem;    /* space between logo and links */
+  display: inline-block;       /* treat the logo link as a block */
+  text-decoration: none;       /* remove underline */
+}
+
+.logo-link:hover {
+  text-decoration: none;       /* make sure no underline appears on hover */
 }
