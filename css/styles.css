@@ -119,11 +119,13 @@ body.sidebar-open {
   position: relative;
 }
 
-.sidebar-nav .nav-link:hover:not(.dropdown-toggle.active) {
-  color: #f4d35e;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  margin: 0 8px;
+@media (hover: hover) and (pointer: fine) {
+  .sidebar-nav .nav-link:hover:not(.dropdown-toggle.active) {
+    color: #f4d35e;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin: 0 8px;
+  }
 }
 
 /* Projects dropdown should never show hover effects when expanded (active state) */
@@ -133,10 +135,12 @@ body.sidebar-open {
   transform: none !important;
 }
 
-.has-dropdown .dropdown-toggle.active:hover {
-  background: transparent !important;
-  color: rgba(255, 255, 255, 0.9) !important;
-  transform: none !important;
+@media (hover: hover) and (pointer: fine) {
+  .has-dropdown .dropdown-toggle.active:hover {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    transform: none !important;
+  }
 }
 
 /* Remove hover from dropdown toggle when hovering over dropdown menu */
@@ -206,10 +210,12 @@ body.sidebar-open {
   color: rgba(255, 255, 255, 0.8);
 }
 
-.dropdown-menu .nav-link:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 1);
-  transform: translateX(2px);
+@media (hover: hover) and (pointer: fine) {
+  .dropdown-menu .nav-link:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 1);
+    transform: translateX(2px);
+  }
 }
 
 .dropdown-menu .nav-link.active {
@@ -278,9 +284,11 @@ nav a {
   font-weight: bold;
 }
 
-nav a:hover {
-  text-decoration: underline;
-  color: #f4d35e;
+@media (hover: hover) and (pointer: fine) {
+  nav a:hover {
+    text-decoration: underline;
+    color: #f4d35e;
+  }
 }
 
 /* Typography */

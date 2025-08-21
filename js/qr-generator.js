@@ -12,8 +12,8 @@ class QRCodeGenerator {
   }
 
   async generateQR(text, size = 300, errorCorrection = 'M') {
-    // Try QRCode library first if available
-    if (typeof QRCode !== 'undefined') {
+    // Wait for QRCode library to be available
+    if (typeof window.QRCode !== 'undefined') {
       try {
         return await this.generateQRWithLibrary(text, size, errorCorrection);
       } catch (error) {
@@ -51,7 +51,7 @@ class QRCodeGenerator {
         }
       };
 
-      await QRCode.toCanvas(canvas, text, options);
+      await window.QRCode.toCanvas(canvas, text, options);
       return canvas;
     } catch (error) {
       console.error('QR library generation failed:', error);
