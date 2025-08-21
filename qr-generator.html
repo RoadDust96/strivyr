@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Code Generator - Strivyr</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" href="images/favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg" />
+  <link rel="shortcut icon" href="images/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="Strivyr" />
+  <link rel="manifest" href="images/site.webmanifest" />
+</head>
+<body>
+  <main class="center">
+    <h1>QR Code Generator</h1>
+    
+    <div class="qr-generator-container">
+      <div class="input-section">
+        <label for="qr-type">Select QR Code Type:</label>
+        <select id="qr-type">
+          <option value="">Choose type...</option>
+          <option value="url">Website URL</option>
+          <option value="email">Email Address</option>
+          <option value="phone">Phone Number</option>
+          <option value="wifi">WiFi Network</option>
+        </select>
+        
+        <div id="input-fields">
+          <!-- Dynamic input fields will be inserted here -->
+        </div>
+        
+        <div class="options">
+          <label for="qr-size">Size:</label>
+          <select id="qr-size">
+            <option value="200">Small (200x200)</option>
+            <option value="300" selected>Medium (300x300)</option>
+            <option value="400">Large (400x400)</option>
+            <option value="500">Extra Large (500x500)</option>
+          </select>
+          
+          <label for="error-correction">Error Correction:</label>
+          <select id="error-correction">
+            <option value="L">Low (~7%)</option>
+            <option value="M" selected>Medium (~15%)</option>
+            <option value="Q">Quartile (~25%)</option>
+            <option value="H">High (~30%)</option>
+          </select>
+        </div>
+        
+        <button id="generate-btn" disabled>Generate QR Code</button>
+      </div>
+      
+      <div class="output-section">
+        <div id="qr-code-display"></div>
+        <div class="download-options" id="download-options" style="display: none;">
+          <button id="download-png">Download PNG</button>
+          <button id="download-svg">Download SVG</button>
+          <button id="copy-svg">Copy SVG Code</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="qr-info">
+      <h3>Quick Examples:</h3>
+      <div class="examples">
+        <button class="example-btn" data-type="url" data-url="https://www.strivyr.com">Website URL</button>
+        <button class="example-btn" data-type="email" data-email="hello@strivyr.com">Email</button>
+        <button class="example-btn" data-type="phone" data-phone="+1234567890">Phone Number</button>
+        <button class="example-btn" data-type="wifi" data-ssid="MyNetwork" data-password="MyPassword" data-security="WPA">WiFi Network</button>
+      </div>
+      
+      <div class="security-notice">
+        <h4>Security Notice:</h4>
+        <p>Only create QR codes for content you trust. This tool includes basic security checks, but always verify QR codes before sharing them with others. Be cautious of:</p>
+        <ul>
+          <li>Shortened URLs that hide the real destination</li>
+          <li>Suspicious file downloads or executable links</li>
+          <li>Requests for personal information or passwords</li>
+          <li>Links that seem too good to be true</li>
+        </ul>
+      </div>
+      
+      <div class="tips">
+        <h4>Tips:</h4>
+        <ul>
+          <li>URLs should include http:// or https://</li>
+          <li>Higher error correction helps QR codes work even if slightly damaged or dirty</li>
+          <li>Use larger sizes for long text or URLs to make them easier to scan</li>
+          <li>Test your QR codes with your phone's camera to make sure they work</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/navigation.js"></script>
+  <script src="js/qr-generator.js"></script>
+</body>
+</html>
