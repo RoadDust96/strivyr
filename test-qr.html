@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .qr-test { display: flex; gap: 20px; margin: 20px 0; }
+        .qr-container { text-align: center; }
+        svg { border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>QR Code Generation Test</h1>
+    
+    <div class="qr-test">
+        <div class="qr-container">
+            <h3>Test 1: "Hello"</h3>
+            <div id="qr1"></div>
+        </div>
+        <div class="qr-container">
+            <h3>Test 2: "World"</h3>
+            <div id="qr2"></div>
+        </div>
+        <div class="qr-container">
+            <h3>Test 3: "https://example.com"</h3>
+            <div id="qr3"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="js/qr-generator.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const generator = new QRCodeGenerator();
+            
+            try {
+                // Test different inputs
+                const test1 = await generator.generateQR('Hello', 200);
+                const test2 = await generator.generateQR('World', 200);
+                const test3 = await generator.generateQR('https://example.com', 200);
+                
+                document.getElementById('qr1').appendChild(test1);
+                document.getElementById('qr2').appendChild(test2);
+                document.getElementById('qr3').appendChild(test3);
+            } catch (error) {
+                console.error('Test failed:', error);
+                document.body.innerHTML += '<p style="color: red;">QR generation failed. Check console for details.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
