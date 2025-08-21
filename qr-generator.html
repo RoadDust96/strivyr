@@ -15,10 +15,19 @@
   <link rel="manifest" href="images/site.webmanifest" />
 </head>
 <body>
-  <main class="center">
-    <h1>QR Code Generator</h1>
-    
-    <div class="qr-generator-container">
+  <main>
+    <!-- Hero Section -->
+    <section class="hero hero-small">
+      <div class="hero-content">
+        <h1 class="hero-title">QR Code Generator</h1>
+        <p class="hero-subtitle">Create secure QR codes for URLs, emails, phone numbers, and WiFi networks</p>
+      </div>
+    </section>
+
+    <!-- QR Generator Section -->
+    <section class="qr-generator-section">
+      <div class="container">
+        <div class="qr-generator-container">
       <div class="input-section">
         <label for="qr-type">Select QR Code Type:</label>
         <select id="qr-type">
@@ -64,8 +73,11 @@
       </div>
     </div>
     
-    <div class="qr-info">
-      <h3>Quick Examples:</h3>
+    <!-- QR Info Section -->
+    <section class="qr-info-section">
+      <div class="container">
+        <div class="qr-info">
+          <h3>Quick Examples:</h3>
       <div class="examples">
         <button class="example-btn" data-type="url" data-url="https://www.strivyr.com">Website URL</button>
         <button class="example-btn" data-type="email" data-email="hello@strivyr.com">Email</button>
@@ -93,7 +105,9 @@
           <li>Test your QR codes with your phone's camera to make sure they work</li>
         </ul>
       </div>
-    </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script src="js/navigation.js"></script>
