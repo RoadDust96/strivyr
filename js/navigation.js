@@ -253,18 +253,33 @@ class Navigation {
   toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
+    const toggle = document.getElementById('sidebar-toggle');
     
-    sidebar?.classList.toggle('open');
-    overlay?.classList.toggle('active');
-    document.body.classList.toggle('sidebar-open');
+    const isOpen = sidebar?.classList.contains('open');
+    
+    if (isOpen) {
+      // Close sidebar
+      sidebar?.classList.remove('open');
+      overlay?.classList.remove('active');
+      toggle?.classList.remove('active');
+      document.body.classList.remove('sidebar-open');
+    } else {
+      // Open sidebar
+      sidebar?.classList.add('open');
+      overlay?.classList.add('active');
+      toggle?.classList.add('active');
+      document.body.classList.add('sidebar-open');
+    }
   }
 
   closeSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
+    const toggle = document.getElementById('sidebar-toggle');
     
     sidebar?.classList.remove('open');
     overlay?.classList.remove('active');
+    toggle?.classList.remove('active');
     document.body.classList.remove('sidebar-open');
   }
 
