@@ -12,13 +12,29 @@ class QRCodeGenerator {
   }
 
   async generateQR(text, size = 300, errorCorrection = 'M') {
-    // Use the QRCode library if available
+    // Try QRCode library first if available
     if (typeof QRCode !== 'undefined') {
-      return this.generateQRWithLibrary(text, size, errorCorrection);
-    } else {
-      // Fallback to external service
-      return this.generateQRWithService(text, size, errorCorrection);
+      try {
+        return await this.generateQRWithLibrary(text, size, errorCorrection);
+      } catch (error) {
+        console.warn('QRCode library failed, trying service fallback:', error);
+      }
     }
+    
+    // Try external service as fallback
+    try {
+      return await this.generateQRWithService(text, size, errorCorrection);
+    } catch (error) {
+      console.warn('QR service failed, using local generation:', error);
+      // Final fallback to our local implementation
+      return this.generateLocalQR(text, size, errorCorrection);
+    }
+  }
+
+  generateLocalQR(text, size, errorCorrection) {
+    // Use our improved local implementation
+    const qr = this.createQRMatrix(text, errorCorrection);
+    return this.renderQRCode(qr, size);
   }
 
   async generateQRWithLibrary(text, size = 300, errorCorrection = 'M') {
@@ -304,7 +320,7 @@ class QRCodeGenerator {
   }
 
   // Better QR generation using external service as fallback
-  generateQRWithService(text, size = 300, errorCorrection = 'M') {
+  async generateQRWithService(text, size = 300, errorCorrection = 'M') {
     const qrSize = Math.min(1000, Math.max(100, size));
     const encodedText = encodeURIComponent(text);
     
@@ -318,11 +334,7 @@ class QRCodeGenerator {
     
     return new Promise((resolve, reject) => {
       img.onload = () => resolve(img);
-      img.onerror = () => {
-        // Fallback to local generation
-        const localQR = this.generateQR(text, size, errorCorrection);
-        resolve(localQR);
-      };
+      img.onerror = () => reject(new Error('Failed to load QR service'));
     });
   }
 }
