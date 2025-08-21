@@ -557,30 +557,74 @@ main {
   }
 }
 
-/* Mobile Navigation */
+/* Mobile Navigation - UPDATED */
 @media (max-width: 768px) {
   body.has-sidebar {
-    margin-left: 0;
+    margin-left: 0 !important;
   }
   
   .sidebar-toggle {
+    display: flex !important; /* Force it to show */
     position: fixed;
     top: 1rem;
-    right: 1rem;
+    left: 1rem; /* MOVED FROM RIGHT TO LEFT */
     z-index: 1001;
-    background: rgba(13, 59, 102, 0.9);
+    background: rgba(13, 59, 102, 0.95);
     border-radius: 8px;
     padding: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    flex-direction: column;
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    gap: 4px;
   }
   
   .sidebar-toggle span {
     background: #fff;
+    height: 2px;
+    width: 20px;
+    border-radius: 1px;
+    transition: all 0.3s ease;
   }
   
   .sidebar-toggle:hover {
     background: rgba(13, 59, 102, 1);
+    transform: translateY(-1px);
   }
+  
+  /* Make sure sidebar is positioned correctly on mobile */
+  .sidebar {
+    left: -280px; /* Start off-screen to the left */
+    transition: left 0.3s ease;
+  }
+  
+  .sidebar.open {
+    left: 0; /* Slide in from left */
+  }
+  
+  /* Add some top padding to content to avoid overlap with hamburger */
+  main {
+    padding-top: 4rem;
+  }
+  
+  /* Make sure hero section accounts for the button */
+  .hero {
+    padding-top: 6rem;
+  }
+}
+
+/* Hamburger button animations */
+.sidebar-toggle.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.sidebar-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.sidebar-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
 }
 
 /* Responsive adjustments */
@@ -590,6 +634,7 @@ main {
     text-align: center;
     padding: 2rem;
     min-height: 70vh;
+    padding-top: 6rem; /* Account for hamburger button */
   }
   
   .hero-title {
@@ -603,6 +648,7 @@ main {
   .hero.hero-small {
     min-height: 35vh;
     padding: 2rem;
+    padding-top: 6rem; /* Account for hamburger button */
   }
   
   .btn {
@@ -817,6 +863,7 @@ main {
 @media (max-width: 768px) {
   .about-hero {
     padding: 4rem 0 3rem;
+    padding-top: 6rem; /* Account for hamburger button */
   }
   
   .about-title {
@@ -1060,7 +1107,7 @@ main {
 /* Utility layouts */
 .center { text-align: center; }
 
-/* “Card” look used on About page */
+/* "Card" look used on About page */
 .narrow {
   max-width: 700px;
   margin: 2rem auto 0;
