@@ -13,11 +13,75 @@
   <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="Strivyr" />
   <link rel="manifest" href="images/site.webmanifest" />
-1
+
 </head>
 <body>
-  <main class="center">
-    <h1>Welcome to Strivyr</h1>
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1 class="hero-title">Welcome to Strivyr</h1>
+        <p class="hero-subtitle">An experimental space for web development, cybersecurity, and creative projects</p>
+        <div class="hero-actions">
+          <a href="about.html" class="btn btn-primary">Learn More</a>
+          <a href="qr-generator.html" class="btn btn-secondary">Try QR Generator</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Showcase -->
+    <section class="projects-showcase">
+      <div class="container">
+        <h2 class="section-title">Current Projects</h2>
+        <div class="projects-grid">
+          <div class="project-card">
+            <div class="project-header">
+              <h3>QR Code Generator</h3>
+              <span class="project-status">Live</span>
+            </div>
+            <p>QR code generation with built-in validation and security checks.</p>
+            <a href="qr-generator.html" class="project-link">Try it out →</a>
+          </div>
+          <div class="project-card upcoming">
+            <div class="project-header">
+              <h3>Tip Calculator</h3>
+              <span class="project-status upcoming">Coming Soon</span>
+            </div>
+            <p>Answering the difficult question "How much is tip?"</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number">1</div>
+            <div class="stat-label">Active Project</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">2025</div>
+            <div class="stat-label">Year Started</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-content">
+          <h2>Ready to Explore?</h2>
+          <p>Check out our current tools or learn more about what we're building.</p>
+          <div class="cta-actions">
+            <a href="qr-generator.html" class="btn btn-primary">Try QR Generator</a>
+            <a href="about.html" class="btn btn-secondary">Learn More</a>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script src="js/navigation.js"></script>
