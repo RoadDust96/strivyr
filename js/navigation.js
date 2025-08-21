@@ -8,6 +8,9 @@ class Navigation {
     this.createSidebar();
     this.attachEventListeners();
     this.handleResponsiveMenu();
+    
+    // Debug - call this to see what's happening
+    this.debugCurrentPage();
   }
 
   createSidebar() {
@@ -138,8 +141,36 @@ class Navigation {
   }
 
   isCurrentPage(pageName) {
-    const currentPath = window.location.pathname;
-    return currentPath.endsWith(pageName) || (pageName === 'index.html' && (currentPath === '/' || currentPath.endsWith('/index.html')));
+    const currentPath = window.location.pathname.toLowerCase();
+    const pageNameLower = pageName.toLowerCase();
+    
+    // Handle index page
+    if (pageNameLower === 'index.html') {
+      return currentPath === '/' || 
+             currentPath === '/index' ||
+             currentPath === '/index.html' ||
+             currentPath.endsWith('/') ||
+             currentPath.endsWith('/index') ||
+             currentPath.endsWith('/index.html');
+    }
+    
+    // For other pages, check with and without .html extension
+    const baseName = pageNameLower.replace('.html', '');
+    return currentPath === '/' + pageNameLower ||
+           currentPath === '/' + baseName ||
+           currentPath.endsWith('/' + pageNameLower) ||
+           currentPath.endsWith('/' + baseName);
+  }
+
+  debugCurrentPage() {
+    console.log('=== Navigation Debug ===');
+    console.log('Current pathname:', window.location.pathname);
+    console.log('Current pathname (lowercase):', window.location.pathname.toLowerCase());
+    console.log('Filename only:', window.location.pathname.split('/').pop());
+    console.log('Is index.html?', this.isCurrentPage('index.html'));
+    console.log('Is about.html?', this.isCurrentPage('about.html'));
+    console.log('Is qr-generator.html?', this.isCurrentPage('qr-generator.html'));
+    console.log('========================');
   }
 
   autoExpandForCurrentPage() {
