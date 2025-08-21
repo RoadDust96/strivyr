@@ -182,19 +182,22 @@ class Navigation {
     });
 
     // Handle dropdown hover states to prevent parent hover when hovering child
-    const dropdownContainer = document.querySelector('.has-dropdown');
-    if (dropdownContainer) {
-      const toggle = dropdownContainer.querySelector('.dropdown-toggle');
-      const menu = dropdownContainer.querySelector('.dropdown-menu');
-      
-      // When hovering over dropdown menu, remove hover from toggle
-      menu?.addEventListener('mouseenter', () => {
-        toggle?.classList.add('child-hovered');
-      });
-      
-      menu?.addEventListener('mouseleave', () => {
-        toggle?.classList.remove('child-hovered');
-      });
+    // Only add this logic for devices that support hover
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      const dropdownContainer = document.querySelector('.has-dropdown');
+      if (dropdownContainer) {
+        const toggle = dropdownContainer.querySelector('.dropdown-toggle');
+        const menu = dropdownContainer.querySelector('.dropdown-menu');
+        
+        // When hovering over dropdown menu, remove hover from toggle
+        menu?.addEventListener('mouseenter', () => {
+          toggle?.classList.add('child-hovered');
+        });
+        
+        menu?.addEventListener('mouseleave', () => {
+          toggle?.classList.remove('child-hovered');
+        });
+      }
     }
 
     // Close dropdown when clicking outside (but not if we're on a project page)

@@ -144,10 +144,12 @@ body.sidebar-open {
 }
 
 /* Remove hover from dropdown toggle when hovering over dropdown menu */
-.dropdown-toggle.child-hovered {
-  background: transparent !important;
-  color: rgba(255, 255, 255, 0.9) !important;
-  transform: none !important;
+@media (hover: hover) and (pointer: fine) {
+  .dropdown-toggle.child-hovered {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    transform: none !important;
+  }
 }
 
 .sidebar-nav .nav-link.active {
