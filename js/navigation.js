@@ -113,6 +113,17 @@ class Navigation {
     qrLi.appendChild(qrLink);
     dropdownMenu.appendChild(qrLi);
     
+    const tipLi = document.createElement('li');
+    const tipLink = document.createElement('a');
+    tipLink.href = 'tip-calculator.html';
+    tipLink.className = 'nav-link';
+    tipLink.textContent = 'Tip Calculator';
+    if (this.isCurrentPage('tip-calculator.html')) {
+      tipLink.classList.add('active');
+    }
+    tipLi.appendChild(tipLink);
+    dropdownMenu.appendChild(tipLi);
+    
     projectsLi.appendChild(projectsToggle);
     projectsLi.appendChild(dropdownMenu);
     ul.appendChild(projectsLi);
@@ -170,6 +181,7 @@ class Navigation {
     console.log('Is index.html?', this.isCurrentPage('index.html'));
     console.log('Is about.html?', this.isCurrentPage('about.html'));
     console.log('Is qr-generator.html?', this.isCurrentPage('qr-generator.html'));
+    console.log('Is tip-calculator.html?', this.isCurrentPage('tip-calculator.html'));
     console.log('========================');
   }
 
@@ -190,8 +202,7 @@ class Navigation {
 
   isOnProjectPage() {
     // Check if current page is any project sub-page
-    return this.isCurrentPage('qr-generator.html');
-    // Future: || this.isCurrentPage('other-project.html')
+    return this.isCurrentPage('qr-generator.html') || this.isCurrentPage('tip-calculator.html');
   }
 
   attachEventListeners() {
