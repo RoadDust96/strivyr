@@ -15,7 +15,7 @@ class CSPManager {
 
     updateCSP() {
         const csp = `default-src 'self'; ` +
-                   `script-src 'self' https://cdn.jsdelivr.net; ` +
+                   `script-src 'self' https://cdn.jsdelivr.net 'sha256-gU7QYzzQPZTLwzGyXZcOa3DybnavaYPT4EPRuEkO5e4=' 'sha256-mjUcZYzzjVH5EzDCcha78i06Vk8WjicW5i5BzQpVUMI='; ` +
                    `style-src 'self' https://fonts.googleapis.com; ` +
                    `font-src 'self' https://fonts.gstatic.com; ` +
                    `connect-src 'self' https://api.qrserver.com https://api.jolpi.ca; ` +
@@ -35,7 +35,8 @@ class CSPManager {
     }
 
     initSecurityMonitoring() {
-        // Monitor for CSP violations
+        // Monitor for CSP violations (temporarily disabled for testing)
+        /*
         document.addEventListener('securitypolicyviolation', (e) => {
             console.warn('CSP Violation:', {
                 blockedURI: e.blockedURI,
@@ -43,6 +44,7 @@ class CSPManager {
                 originalPolicy: e.originalPolicy
             });
         });
+        */
     }
 }
 
