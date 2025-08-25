@@ -288,11 +288,11 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Driver standings list found, updating content');
             // Only replace the content of the standings-list, preserve everything else
             standingsList.innerHTML = `
-                <div class="standings-header" style="display: flex !important; background: #242b3a; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; color: #94a3b8; border: 2px solid #3b82f6;">
-                    <span class="header-pos" style="width: 2.5rem; margin-right: 1rem; text-align: center;">Pos</span>
-                    <span class="header-name" style="flex: 1; min-width: 0;">Driver</span>
-                    <span class="header-team" style="margin: 0 1rem; flex-shrink: 0;">Team</span>
-                    <span class="header-points" style="min-width: 4rem; text-align: right;">Points</span>
+                <div class="standings-header">
+                    <span class="header-pos">Pos</span>
+                    <span class="header-name">Driver</span>
+                    <span class="header-team">Team</span>
+                    <span class="header-points">Points</span>
                 </div>
                 ${standings.map(driver => {
                     const position = parseInt(driver.position);
@@ -327,11 +327,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (standingsList) {
             console.log('Constructor standings list found, updating content');
             standingsList.innerHTML = `
-                <div class="standings-header" style="display: flex !important; background: #242b3a; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; color: #94a3b8; border: 2px solid #3b82f6;">
-                    <span class="header-pos" style="width: 2.5rem; margin-right: 1rem; text-align: center;">Pos</span>
-                    <span class="header-name" style="flex: 1; min-width: 0;">Constructor</span>
-                    <span class="header-wins" style="min-width: 4rem; text-align: right;">Wins</span>
-                    <span class="header-points" style="min-width: 4rem; text-align: right;">Points</span>
+                <div class="standings-header">
+                    <span class="header-pos">Pos</span>
+                    <span class="header-name">Constructor</span>
+                    <span class="header-wins">Wins</span>
+                    <span class="header-points">Points</span>
                 </div>
                 ${standings.map(constructor => {
                     const position = parseInt(constructor.position);

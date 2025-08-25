@@ -666,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Clear previous QR code
     qrDisplay.innerHTML = '<div class="loading">Generating QR code...</div>';
-    downloadOptions.style.display = 'none';
+    downloadOptions.classList.add('hidden');
 
     try {
       // Use the proper QR library for scannable codes
@@ -674,7 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       qrDisplay.innerHTML = '';
       qrDisplay.appendChild(currentQRElement);
-      downloadOptions.style.display = 'block';
+      downloadOptions.classList.remove('hidden');
     } catch (error) {
       qrDisplay.innerHTML = '<div class="error">Error generating QR code. Please check your internet connection and try again.</div>';
       console.error('QR generation error:', error);

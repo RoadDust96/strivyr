@@ -13,7 +13,9 @@
   <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="Strivyr" />
   <link rel="manifest" href="images/site.webmanifest" />
-
+  
+  <!-- CSP Implementation -->
+  <script src="js/csp-nonce.js"></script>
 </head>
 <body>
   <main>
@@ -37,8 +39,8 @@
           <a href="qr-generator.html" class="project-card-link">
             <div class="project-card">
               <div class="project-preview">
-                <img src="images/qr-generator-preview.png" alt="QR Generator Preview" class="preview-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="preview-placeholder qr-preview" style="display: none;">
+                <img src="images/qr-generator-preview.png" alt="QR Generator Preview" class="preview-image">
+                <div class="preview-placeholder qr-preview hidden">
                   <div class="preview-icon">📱</div>
                   <div class="preview-text">QR Generator</div>
                 </div>
@@ -54,8 +56,8 @@
           <a href="tip-calculator.html" class="project-card-link">
             <div class="project-card">
               <div class="project-preview">
-                <img src="images/tip-calculator-preview.png" alt="Tip Calculator Preview" class="preview-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="preview-placeholder tip-preview" style="display: none;">
+                <img src="images/tip-calculator-preview.png" alt="Tip Calculator Preview" class="preview-image">
+                <div class="preview-placeholder tip-preview hidden">
                   <div class="preview-icon">💰</div>
                   <div class="preview-text">Tip Calculator</div>
                 </div>
@@ -103,6 +105,7 @@
     </section>
   </main>
 
+  <script src="js/safe-image-loader.js"></script>
   <script src="js/navigation.js"></script>
 </body>
 </html>
