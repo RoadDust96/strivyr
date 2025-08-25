@@ -276,12 +276,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Display driver standings (top 10)
+    // Display driver standings (all drivers)
     function displayDriverStandings(standings) {
         const container = document.querySelector('.driver-standings');
         if (!container || !standings.length) return;
-
-        const top10 = standings.slice(0, 10);
         
         // Find just the standings-list div to replace, not the entire container
         const standingsList = container.querySelector('.standings-list');
@@ -296,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="header-team" style="margin: 0 1rem; flex-shrink: 0;">Team</span>
                     <span class="header-points" style="min-width: 4rem; text-align: right;">Points</span>
                 </div>
-                ${top10.map(driver => {
+                ${standings.map(driver => {
                     const position = parseInt(driver.position);
                     let positionClass = '';
                     
@@ -332,8 +330,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="standings-header" style="display: flex !important; background: #242b3a; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; color: #94a3b8; border: 2px solid #3b82f6;">
                     <span class="header-pos" style="width: 2.5rem; margin-right: 1rem; text-align: center;">Pos</span>
                     <span class="header-name" style="flex: 1; min-width: 0;">Constructor</span>
-                    <span class="header-points" style="min-width: 4rem; text-align: right;">Points</span>
                     <span class="header-wins" style="min-width: 4rem; text-align: right;">Wins</span>
+                    <span class="header-points" style="min-width: 4rem; text-align: right;">Points</span>
                 </div>
                 ${standings.map(constructor => {
                     const position = parseInt(constructor.position);
@@ -348,8 +346,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="standings-item ${positionClass}">
                             <span class="position">${constructor.position}</span>
                             <span class="constructor-name">${constructor.Constructor.name}</span>
-                            <span class="points">${constructor.points} pts</span>
                             <span class="wins">${constructor.wins} wins</span>
+                            <span class="points">${constructor.points} pts</span>
                         </div>
                     `;
                 }).join('')}

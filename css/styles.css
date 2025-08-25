@@ -1911,10 +1911,10 @@ main {
 }
 
 .countdown-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 3rem;
   align-items: start;
 }
@@ -1971,16 +1971,16 @@ main {
 }
 
 .schedule-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .schedule-item {
   background: #0a0e1a;
-  padding: 1.5rem;
-  border-radius: 12px;
+  padding: 1rem;
+  border-radius: 8px;
   border: 1px solid #2a3441;
 }
 
@@ -2016,8 +2016,8 @@ main {
 
 .circuit-stats {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
 }
 
 .stat {
@@ -2311,8 +2311,13 @@ main {
     font-size: 2rem;
   }
   
-  .circuit-stats {
+  .schedule-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .circuit-stats {
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
   
@@ -2377,6 +2382,7 @@ main {
   font-weight: 600;
   border-bottom: 2px solid #3b82f6;
   padding-bottom: 0.5rem;
+  text-align: center;
 }
 
 .standings-header {
@@ -2457,35 +2463,6 @@ main {
   font-size: 0.9rem;
 }
 
-.driver-standings .standings-item:first-child .position {
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  color: #000;
-}
-
-.driver-standings .standings-item:nth-child(2) .position {
-  background: linear-gradient(135deg, #c0c0c0, #e5e5e5);
-  color: #000;
-}
-
-.driver-standings .standings-item:nth-child(3) .position {
-  background: linear-gradient(135deg, #cd7f32, #b8860b);
-  color: #fff;
-}
-
-.constructor-standings .standings-item:first-child .position {
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  color: #000;
-}
-
-.constructor-standings .standings-item:nth-child(2) .position {
-  background: linear-gradient(135deg, #c0c0c0, #e5e5e5);
-  color: #000;
-}
-
-.constructor-standings .standings-item:nth-child(3) .position {
-  background: linear-gradient(135deg, #cd7f32, #b8860b);
-  color: #fff;
-}
 
 /* Position-based styling for bronze 3rd place and gray for 4th+ */
 .standings-item.position-1 .position {
