@@ -12,23 +12,13 @@ class QRCodeGenerator {
   }
 
   async generateQR(text, size = 300, errorCorrection = 'M') {
-    // Wait for QRCode library to be available
+    // Use local QRCode library only - no external dependencies
     if (typeof window.QRCode !== 'undefined') {
-      try {
-        return await this.generateQRWithLibrary(text, size, errorCorrection);
-      } catch (error) {
-        console.warn('QRCode library failed, trying service fallback:', error);
-      }
+      return await this.generateQRWithLibrary(text, size, errorCorrection);
     }
     
-    // Try external service as fallback
-    try {
-      return await this.generateQRWithService(text, size, errorCorrection);
-    } catch (error) {
-      console.warn('QR service failed, using local generation:', error);
-      // Final fallback to our local implementation
-      return this.generateLocalQR(text, size, errorCorrection);
-    }
+    // Fallback to local implementation if library unavailable
+    return this.generateLocalQR(text, size, errorCorrection);
   }
 
   generateLocalQR(text, size, errorCorrection) {
@@ -317,25 +307,6 @@ class QRCodeGenerator {
     }
     
     return svg;
-  }
-
-  // Better QR generation using external service as fallback
-  async generateQRWithService(text, size = 300, errorCorrection = 'M') {
-    const qrSize = Math.min(1000, Math.max(100, size));
-    const encodedText = encodeURIComponent(text);
-    
-    // Create an image element
-    const img = document.createElement('img');
-    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodedText}&ecc=${errorCorrection}`;
-    img.alt = 'QR Code';
-    img.style.maxWidth = '100%';
-    img.style.height = 'auto';
-    img.style.border = '1px solid #ddd';
-    
-    return new Promise((resolve, reject) => {
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('Failed to load QR service'));
-    });
   }
 }
 
