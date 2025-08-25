@@ -15,6 +15,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const displayPerPerson = document.getElementById('display-per-person');
     const displayTipPerPerson = document.getElementById('display-tip-per-person');
 
+    // Get the divider and per-person elements for hiding/showing
+    const calcDivider = document.querySelector('.calc-divider');
+    const perPersonElements = [
+        displayPerPerson.closest('.calc-item'),
+        displayTipPerPerson.closest('.calc-item')
+    ];
+
     // Add event listeners
     billAmountInput.addEventListener('input', calculateTip);
     tipPercentageInput.addEventListener('input', calculateTip);
@@ -83,6 +90,21 @@ document.addEventListener('DOMContentLoaded', function() {
         displayTotal.textContent = formatCurrency(totalAmount);
         displayPerPerson.textContent = formatCurrency(totalPerPerson);
         displayTipPerPerson.textContent = formatCurrency(tipPerPerson);
+
+        // Show/hide per-person section based on people count
+        if (peopleCount === 1) {
+            // Hide divider and per-person elements
+            calcDivider.style.display = 'none';
+            perPersonElements.forEach(element => {
+                if (element) element.style.display = 'none';
+            });
+        } else {
+            // Show divider and per-person elements
+            calcDivider.style.display = 'block';
+            perPersonElements.forEach(element => {
+                if (element) element.style.display = 'flex';
+            });
+        }
     }
 
     function formatCurrency(amount) {
@@ -110,6 +132,12 @@ document.addEventListener('DOMContentLoaded', function() {
         displayTotal.textContent = '$0.00';
         displayPerPerson.textContent = '$0.00';
         displayTipPerPerson.textContent = '$0.00';
+
+        // Hide per-person section since we reset to 1 person
+        calcDivider.style.display = 'none';
+        perPersonElements.forEach(element => {
+            if (element) element.style.display = 'none';
+        });
 
         // Focus on bill amount input
         billAmountInput.focus();
