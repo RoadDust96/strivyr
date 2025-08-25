@@ -8,9 +8,6 @@ class Navigation {
     this.createSidebar();
     this.attachEventListeners();
     this.handleResponsiveMenu();
-    
-    // Debug - call this to see what's happening
-    this.debugCurrentPage();
   }
 
   createSidebar() {

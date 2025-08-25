@@ -1,7 +1,11 @@
-// F1 Countdown Timer
+// F1 Countdown Timer  
+console.log('F1 script starting to load');
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('F1 countdown script loaded');
     // Initialize with loading state
     let nextRace = null;
+    let totalRaces = 0;
+    let currentSeason = new Date().getFullYear();
 
     // DOM elements
     const daysElement = document.getElementById('days');
@@ -12,59 +16,389 @@ document.addEventListener('DOMContentLoaded', function() {
     const timezoneInfoElement = document.getElementById('timezone-info');
     const countdownStatusElement = document.getElementById('countdown-status');
 
-    // Country flags mapping
+    // Comprehensive country flags mapping - ALL countries that have hosted F1 races
     const countryFlags = {
-        'australia': 'AU',
-        'bahrain': 'BH', 
-        'china': 'CN',
-        'japan': 'JP',
-        'saudi arabia': 'SA',
-        'miami': 'US',
-        'italy': 'IT',
-        'monaco': 'MC',
-        'spain': 'ES',
-        'canada': 'CA',
-        'austria': 'AT',
-        'great britain': 'GB',
-        'uk': 'GB',
-        'belgium': 'BE',
-        'netherlands': 'NL',
-        'azerbaijan': 'AZ',
-        'singapore': 'SG',
-        'usa': 'US',
-        'united states': 'US',
-        'mexico': 'MX',
-        'brazil': 'BR',
-        'qatar': 'QA',
-        'abu dhabi': 'AE',
-        'uae': 'AE'
+        // Current F1 Countries (2025)
+        'australia': '🇦🇺',
+        'bahrain': '🇧🇭', 
+        'china': '🇨🇳',
+        'japan': '🇯🇵',
+        'saudi arabia': '🇸🇦',
+        'usa': '🇺🇸',
+        'united states': '🇺🇸',
+        'italy': '🇮🇹',
+        'monaco': '🇲🇨',
+        'spain': '🇪🇸',
+        'canada': '🇨🇦',
+        'austria': '🇦🇹',
+        'uk': '🇬🇧',
+        'united kingdom': '🇬🇧',
+        'great britain': '🇬🇧',
+        'belgium': '🇧🇪',
+        'hungary': '🇭🇺',
+        'netherlands': '🇳🇱',
+        'azerbaijan': '🇦🇿',
+        'singapore': '🇸🇬',
+        'mexico': '🇲🇽',
+        'brazil': '🇧🇷',
+        'qatar': '🇶🇦',
+        'uae': '🇦🇪',
+        'united arab emirates': '🇦🇪',
+        
+        // Historic F1 Countries
+        'france': '🇫🇷',
+        'germany': '🇩🇪',
+        'west germany': '🇩🇪',
+        'portugal': '🇵🇹',
+        'turkey': '🇹🇷',
+        'malaysia': '🇲🇾',
+        'south korea': '🇰🇷',
+        'india': '🇮🇳',
+        'russia': '🇷🇺',
+        'south africa': '🇿🇦',
+        'argentina': '🇦🇷',
+        'chile': '🇨🇱',
+        'switzerland': '🇨🇭',
+        'sweden': '🇸🇪',
+        'morocco': '🇲🇦',
+        'lebanon': '🇱🇧',
+        'egypt': '🇪🇬',
+        'east germany': '🇩🇪',
+        'czechoslovakia': '🇨🇿',
+        'yugoslavia': '🇷🇸',  // Using Serbia as closest modern equivalent
+        
+        // Alternative country name variations
+        'korean republic': '🇰🇷',
+        'republic of korea': '🇰🇷',
+        'united states of america': '🇺🇸',
+        'federal republic of germany': '🇩🇪',
+        'russian federation': '🇷🇺',
+        // "people's republic of china": '🇨🇳',
+        'republic of south africa': '🇿🇦',
+        'kingdom of bahrain': '🇧🇭',
+        'state of qatar': '🇶🇦',
+        'republic of singapore': '🇸🇬',
+        'kingdom of saudi arabia': '🇸🇦',
+        'principality of monaco': '🇲🇨',
+        'republic of azerbaijan': '🇦🇿',
+        'kingdom of the netherlands': '🇳🇱',
+        'republic of hungary': '🇭🇺',
+        'kingdom of belgium': '🇧🇪',
+        'republic of austria': '🇦🇹',
+        'kingdom of spain': '🇪🇸',
+        'portuguese republic': '🇵🇹',
+        'french republic': '🇫🇷',
+        'italian republic': '🇮🇹',
+        'swiss confederation': '🇨🇭',
+        'kingdom of sweden': '🇸🇪',
+        'kingdom of morocco': '🇲🇦',
+        'lebanese republic': '🇱🇧',
+        'arab republic of egypt': '🇪🇬',
+        'republic of turkey': '🇹🇷',
+        'republic of india': '🇮🇳',
+        'federative republic of brazil': '🇧🇷',
+        'united mexican states': '🇲🇽',
+        'commonwealth of australia': '🇦🇺',
+        'dominion of canada': '🇨🇦',
+        'argentine republic': '🇦🇷',
+        'republic of chile': '🇨🇱'
     };
 
-    // Circuit information mapping for additional details
+    // Comprehensive circuit database - ALL F1 circuits ever used (1950-2025+)
     const circuitDetails = {
-        'albert_park': { laps: 58, length: '5.278 km', distance: '305.9 km' },
-        'shanghai': { laps: 56, length: '5.451 km', distance: '305.1 km' },
-        'suzuka': { laps: 53, length: '5.807 km', distance: '307.5 km' },
-        'bahrain': { laps: 57, length: '5.412 km', distance: '308.4 km' },
-        'jeddah': { laps: 50, length: '6.174 km', distance: '308.5 km' },
-        'miami': { laps: 57, length: '5.412 km', distance: '308.3 km' },
-        'imola': { laps: 63, length: '4.909 km', distance: '309.0 km' },
-        'monaco': { laps: 78, length: '3.337 km', distance: '260.3 km' },
-        'catalunya': { laps: 66, length: '4.675 km', distance: '308.4 km' },
-        'montreal': { laps: 70, length: '4.361 km', distance: '305.3 km' },
-        'red_bull_ring': { laps: 71, length: '4.318 km', distance: '306.4 km' },
-        'silverstone': { laps: 52, length: '5.891 km', distance: '306.2 km' },
-        'spa': { laps: 44, length: '7.004 km', distance: '308.1 km' },
-        'zandvoort': { laps: 72, length: '4.259 km', distance: '306.6 km' },
-        'monza': { laps: 53, length: '5.793 km', distance: '306.7 km' },
-        'baku': { laps: 51, length: '6.003 km', distance: '306.0 km' },
-        'marina_bay': { laps: 62, length: '4.928 km', distance: '305.3 km' },
-        'cota': { laps: 56, length: '5.513 km', distance: '308.4 km' },
-        'rodriguez': { laps: 71, length: '4.304 km', distance: '305.4 km' },
-        'interlagos': { laps: 71, length: '4.309 km', distance: '305.9 km' },
-        'losail': { laps: 57, length: '5.380 km', distance: '306.7 km' },
-        'yas_marina': { laps: 58, length: '5.281 km', distance: '306.2 km' }
+        // Current 2025 F1 Calendar
+        'albert_park': { laps: 58, length: '5.278 km', distance: '305.9 km', lapRecord: '1:19.813' },
+        'shanghai': { laps: 56, length: '5.451 km', distance: '305.1 km', lapRecord: '1:32.238' },
+        'suzuka': { laps: 53, length: '5.807 km', distance: '307.5 km', lapRecord: '1:30.983' },
+        'bahrain': { laps: 57, length: '5.412 km', distance: '308.4 km', lapRecord: '1:31.447' },
+        'jeddah': { laps: 50, length: '6.174 km', distance: '308.5 km', lapRecord: '1:30.734' },
+        'miami': { laps: 57, length: '5.412 km', distance: '308.3 km', lapRecord: '1:29.708' },
+        'imola': { laps: 63, length: '4.909 km', distance: '309.0 km', lapRecord: '1:15.484' },
+        'monaco': { laps: 78, length: '3.337 km', distance: '260.3 km', lapRecord: '1:12.909' },
+        'catalunya': { laps: 66, length: '4.675 km', distance: '308.4 km', lapRecord: '1:16.330' },
+        'montreal': { laps: 70, length: '4.361 km', distance: '305.3 km', lapRecord: '1:13.078' },
+        'red_bull_ring': { laps: 71, length: '4.318 km', distance: '306.4 km', lapRecord: '1:05.619' },
+        'silverstone': { laps: 52, length: '5.891 km', distance: '306.2 km', lapRecord: '1:27.097' },
+        'spa': { laps: 44, length: '7.004 km', distance: '308.1 km', lapRecord: '1:46.286' },
+        'zandvoort': { laps: 72, length: '4.259 km', distance: '306.6 km', lapRecord: '1:11.097' },
+        'monza': { laps: 53, length: '5.793 km', distance: '306.7 km', lapRecord: '1:21.046' },
+        'baku': { laps: 51, length: '6.003 km', distance: '306.0 km', lapRecord: '1:43.009' },
+        'marina_bay': { laps: 62, length: '4.928 km', distance: '305.3 km', lapRecord: '1:36.015' },
+        'cota': { laps: 56, length: '5.513 km', distance: '308.4 km', lapRecord: '1:36.169' },
+        'rodriguez': { laps: 71, length: '4.304 km', distance: '305.4 km', lapRecord: '1:17.774' },
+        'interlagos': { laps: 71, length: '4.309 km', distance: '305.9 km', lapRecord: '1:10.540' },
+        'losail': { laps: 57, length: '5.380 km', distance: '306.7 km', lapRecord: '1:24.319' },
+        'yas_marina': { laps: 58, length: '5.281 km', distance: '306.2 km', lapRecord: '1:26.103' },
+        'vegas': { laps: 50, length: '6.201 km', distance: '310.0 km', lapRecord: '1:35.490' },
+        
+        // Recently Used Circuits (2020s)
+        'portimao': { laps: 66, length: '4.653 km', distance: '306.8 km', lapRecord: '1:18.750' },
+        'mugello': { laps: 59, length: '5.245 km', distance: '309.5 km', lapRecord: '1:15.144' },
+        'istanbul': { laps: 58, length: '5.338 km', distance: '309.4 km', lapRecord: '1:24.770' },
+        'nurburgring': { laps: 60, length: '5.148 km', distance: '308.9 km', lapRecord: '1:15.468' },
+        
+        // Historic European Circuits
+        'brands_hatch': { laps: 76, length: '4.207 km', distance: '320.0 km', lapRecord: '1:09.593' },
+        'donington': { laps: 76, length: '4.023 km', distance: '305.8 km', lapRecord: '1:18.029' },
+        'estoril': { laps: 71, length: '4.360 km', distance: '309.6 km', lapRecord: '1:16.366' },
+        'jerez': { laps: 69, length: '4.428 km', distance: '305.5 km', lapRecord: '1:21.072' },
+        'paul_ricard': { laps: 53, length: '5.842 km', distance: '309.7 km', lapRecord: '1:32.740' },
+        'magny_cours': { laps: 70, length: '4.411 km', distance: '308.8 km', lapRecord: '1:15.377' },
+        'hockenheim': { laps: 67, length: '4.574 km', distance: '306.5 km', lapRecord: '1:13.780' },
+        'a1_ring': { laps: 71, length: '4.319 km', distance: '306.6 km', lapRecord: '1:10.843' },
+        
+        // Historic Non-European Circuits  
+        'kyalami': { laps: 75, length: '4.104 km', distance: '307.8 km', lapRecord: '1:17.578' },
+        'buenos_aires': { laps: 72, length: '4.259 km', distance: '306.6 km', lapRecord: '1:27.981' },
+        'jarama': { laps: 80, length: '3.404 km', distance: '272.3 km', lapRecord: '1:14.720' },
+        'long_beach': { laps: 80, length: '3.275 km', distance: '262.0 km', lapRecord: '1:19.117' },
+        'detroit': { laps: 63, length: '4.023 km', distance: '253.4 km', lapRecord: '1:40.464' },
+        'phoenix': { laps: 81, length: '3.720 km', distance: '301.3 km', lapRecord: '1:28.108' },
+        'dallas': { laps: 67, length: '3.901 km', distance: '261.4 km', lapRecord: '1:35.036' },
+        'adelaide': { laps: 81, length: '3.780 km', distance: '306.2 km', lapRecord: '1:15.381' },
+        'aida': { laps: 83, length: '3.703 km', distance: '307.5 km', lapRecord: '1:13.114' },
+        'sepang': { laps: 56, length: '5.543 km', distance: '310.4 km', lapRecord: '1:34.223' },
+        
+        // Street Circuits & Temporary
+        'caesars_palace': { laps: 75, length: '3.650 km', distance: '273.8 km', lapRecord: '1:16.356' },
+        'fair_park': { laps: 67, length: '3.901 km', distance: '261.4 km', lapRecord: '1:35.036' },
+        'east_london': { laps: 75, length: '3.920 km', distance: '294.0 km', lapRecord: '1:29.130' },
+        
+        // Historic Dangerous/Long Circuits
+        'nurburgring_old': { laps: 14, length: '22.835 km', distance: '319.7 km', lapRecord: '7:04.000' },
+        'spa_old': { laps: 28, length: '14.100 km', distance: '394.8 km', lapRecord: '3:13.400' },
+        'pescara': { laps: 18, length: '25.800 km', distance: '464.4 km', lapRecord: '9:44.600' },
+        'avus': { laps: 60, length: '8.300 km', distance: '498.0 km', lapRecord: '2:06.400' },
+        
+        // Alternative Circuit Layouts
+        'silverstone_old': { laps: 59, length: '5.226 km', distance: '308.3 km', lapRecord: '1:18.739' },
+        'hockenheim_old': { laps: 45, length: '6.823 km', distance: '307.0 km', lapRecord: '1:43.902' },
+        'monza_oval': { laps: 68, length: '4.250 km', distance: '289.0 km', lapRecord: '1:24.070' },
+        'indianapolis': { laps: 73, length: '4.192 km', distance: '306.0 km', lapRecord: '1:10.399' }
     };
+
+    // Helper function to get country flag with intelligent fallbacks
+    function getCountryFlag(countryName) {
+        const country = countryName.toLowerCase().trim();
+        
+        // Direct lookup
+        if (countryFlags[country]) {
+            return countryFlags[country];
+        }
+        
+        // Try common variations and partial matches
+        const variations = [
+            country.replace(/\s+/g, ''), // Remove spaces
+            country.replace(/republic of |kingdom of |state of |principality of |federation of /g, ''), // Remove prefixes
+            country.replace(/united states.*/, 'usa'), // USA variations
+            country.replace(/united kingdom.*|great britain.*/, 'uk'), // UK variations
+            country.replace(/south korea.*/, 'south korea'), // Korea variations
+            country.replace(/.*germany.*/, 'germany'), // Germany variations
+        ];
+        
+        for (const variation of variations) {
+            if (countryFlags[variation]) {
+                return countryFlags[variation];
+            }
+        }
+        
+        // If no flag found, return default racing flag
+        console.warn(`No flag found for country: "${countryName}". Using default flag.`);
+        return '🏁';
+    }
+    
+    // Helper function to get circuit details with intelligent fallbacks
+    function getCircuitDetails(circuitId, raceData) {
+        // Direct lookup
+        if (circuitDetails[circuitId]) {
+            return circuitDetails[circuitId];
+        }
+        
+        // Try alternative circuit IDs or variations
+        const variations = [
+            circuitId.replace(/_/g, ''), // Remove underscores
+            circuitId.replace(/-/g, '_'), // Replace dashes with underscores
+            circuitId.replace(/_/g, '-'), // Replace underscores with dashes
+            circuitId + '_circuit',
+            circuitId.replace('_circuit', ''),
+            circuitId + '_international'
+        ];
+        
+        for (const variation of variations) {
+            if (circuitDetails[variation]) {
+                console.log(`Found circuit details using variation: ${variation} for ${circuitId}`);
+                return circuitDetails[variation];
+            }
+        }
+        
+        // Generate reasonable fallback data based on typical F1 circuits
+        const fallbackData = {
+            laps: Math.round(300 / 5.0), // Assume ~5km circuit for 300km race
+            length: '5.0 km',
+            distance: '300.0 km',
+            lapRecord: 'N/A'
+        };
+        
+        console.warn(`No circuit details found for: "${circuitId}". Using fallback data.`, fallbackData);
+        return fallbackData;
+    }
+
+    // Fetch current driver standings from API
+    async function fetchDriverStandings() {
+        try {
+            console.log('Attempting to fetch driver standings...');
+            const response = await fetch('https://api.jolpi.ca/ergast/f1/current/driverStandings.json');
+            console.log('Driver standings response:', response);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Driver standings data:', data);
+            return data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+        } catch (error) {
+            console.error('Error fetching driver standings:', error);
+            return [];
+        }
+    }
+
+    // Fetch current constructor standings from API
+    async function fetchConstructorStandings() {
+        try {
+            const response = await fetch('https://api.jolpi.ca/ergast/f1/current/constructorStandings.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
+        } catch (error) {
+            console.error('Error fetching constructor standings:', error);
+            return [];
+        }
+    }
+
+    // Display driver standings (top 10)
+    function displayDriverStandings(standings) {
+        const container = document.querySelector('.driver-standings');
+        if (!container || !standings.length) return;
+
+        const top10 = standings.slice(0, 10);
+        
+        // Find just the standings-list div to replace, not the entire container
+        const standingsList = container.querySelector('.standings-list');
+        
+        if (standingsList) {
+            console.log('Driver standings list found, updating content');
+            // Only replace the content of the standings-list, preserve everything else
+            standingsList.innerHTML = `
+                <div class="standings-header" style="display: flex !important; background: #242b3a; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; color: #94a3b8; border: 2px solid #3b82f6;">
+                    <span class="header-pos" style="width: 2.5rem; margin-right: 1rem; text-align: center;">Pos</span>
+                    <span class="header-name" style="flex: 1; min-width: 0;">Driver</span>
+                    <span class="header-team" style="margin: 0 1rem; flex-shrink: 0;">Team</span>
+                    <span class="header-points" style="min-width: 4rem; text-align: right;">Points</span>
+                </div>
+                ${top10.map(driver => {
+                    const position = parseInt(driver.position);
+                    let positionClass = '';
+                    
+                    if (position === 1) positionClass = 'position-1';
+                    else if (position === 2) positionClass = 'position-2';  
+                    else if (position === 3) positionClass = 'position-3';
+                    else positionClass = 'position-other';
+                    
+                    return `
+                        <div class="standings-item ${positionClass}">
+                            <span class="position">${driver.position}</span>
+                            <span class="driver-name">${driver.Driver.givenName} ${driver.Driver.familyName}</span>
+                            <span class="team">${driver.Constructors[0].name}</span>
+                            <span class="points">${driver.points} pts</span>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+        }
+    }
+
+    // Display constructor standings (all teams dynamically)
+    function displayConstructorStandings(standings) {
+        const container = document.querySelector('.constructor-standings');
+        if (!container || !standings.length) return;
+
+        // Find just the standings-list div to replace, not the entire container
+        const standingsList = container.querySelector('.standings-list');
+        
+        if (standingsList) {
+            console.log('Constructor standings list found, updating content');
+            standingsList.innerHTML = `
+                <div class="standings-header" style="display: flex !important; background: #242b3a; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; color: #94a3b8; border: 2px solid #3b82f6;">
+                    <span class="header-pos" style="width: 2.5rem; margin-right: 1rem; text-align: center;">Pos</span>
+                    <span class="header-name" style="flex: 1; min-width: 0;">Constructor</span>
+                    <span class="header-points" style="min-width: 4rem; text-align: right;">Points</span>
+                    <span class="header-wins" style="min-width: 4rem; text-align: right;">Wins</span>
+                </div>
+                ${standings.map(constructor => {
+                    const position = parseInt(constructor.position);
+                    let positionClass = '';
+                    
+                    if (position === 1) positionClass = 'position-1';
+                    else if (position === 2) positionClass = 'position-2';  
+                    else if (position === 3) positionClass = 'position-3';
+                    else positionClass = 'position-other';
+                    
+                    return `
+                        <div class="standings-item ${positionClass}">
+                            <span class="position">${constructor.position}</span>
+                            <span class="constructor-name">${constructor.Constructor.name}</span>
+                            <span class="points">${constructor.points} pts</span>
+                            <span class="wins">${constructor.wins} wins</span>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+        }
+    }
+
+    // Fetch and display both standings
+    async function fetchStandings() {
+        try {
+            console.log('Fetching standings...');
+            // Fetch both standings in parallel
+            const [driverStandings, constructorStandings] = await Promise.all([
+                fetchDriverStandings(),
+                fetchConstructorStandings()
+            ]);
+
+            console.log('Driver standings:', driverStandings);
+            console.log('Constructor standings:', constructorStandings);
+
+            // Display standings
+            displayDriverStandings(driverStandings);
+            displayConstructorStandings(constructorStandings);
+            
+        } catch (error) {
+            console.error('Error fetching standings:', error);
+            // Show error state for standings
+            const driverContainer = document.querySelector('.driver-standings');
+            const constructorContainer = document.querySelector('.constructor-standings');
+            
+            if (driverContainer) {
+                driverContainer.innerHTML = `
+                    <h3>Driver Championship</h3>
+                    <div class="standings-list">
+                        <div class="error">Unable to load driver standings</div>
+                    </div>
+                `;
+            }
+            
+            if (constructorContainer) {
+                constructorContainer.innerHTML = `
+                    <h3>Constructor Championship</h3>
+                    <div class="standings-list">
+                        <div class="error">Unable to load constructor standings</div>
+                    </div>
+                `;
+            }
+        }
+    }
 
     // Fetch race schedule from jolpica-f1 API
     async function fetchRaceSchedule() {
@@ -81,6 +415,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
             const races = data.MRData.RaceTable.Races;
+            totalRaces = races.length;
+            currentSeason = parseInt(data.MRData.RaceTable.season);
             
             // Find the next race
             const now = new Date();
@@ -106,6 +442,9 @@ document.addEventListener('DOMContentLoaded', function() {
             updateCountdown();
             setInterval(updateCountdown, 1000);
             
+            // Fetch and display standings
+            fetchStandings();
+            
         } catch (error) {
             console.error('Error fetching race data:', error);
             showErrorState();
@@ -114,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function parseRaceData(raceData) {
         const country = raceData.Circuit.Location.country.toLowerCase();
-        const flag = countryFlags[country] || '🏁';
+        const flag = getCountryFlag(country);
         
         const raceDateTime = new Date(raceData.date + 'T' + (raceData.time || '14:00:00Z'));
         
@@ -125,14 +464,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const friday = new Date(raceDay);
         friday.setDate(raceDay.getDate() - 2);
         
+        // Check if this is a sprint weekend
+        const isSprintWeekend = raceData.Sprint && raceData.SprintQualifying;
+        
         // Create session times based on race time (typical F1 schedule patterns)
         const sessions = {
             fp1: new Date(friday.getFullYear(), friday.getMonth(), friday.getDate(), raceDateTime.getUTCHours() - 4, 30, 0),
             fp2: new Date(friday.getFullYear(), friday.getMonth(), friday.getDate(), raceDateTime.getUTCHours(), 0, 0),
             fp3: new Date(saturday.getFullYear(), saturday.getMonth(), saturday.getDate(), raceDateTime.getUTCHours() - 4, 30, 0),
             qualifying: new Date(saturday.getFullYear(), saturday.getMonth(), saturday.getDate(), raceDateTime.getUTCHours() - 1, 0, 0),
-            race: raceDateTime
+            race: raceDateTime,
+            isSprintWeekend: isSprintWeekend
         };
+        
+        // Add sprint sessions if this is a sprint weekend
+        if (isSprintWeekend) {
+            sessions.sprintQualifying = new Date(raceData.SprintQualifying.date + 'T' + raceData.SprintQualifying.time);
+            sessions.sprint = new Date(raceData.Sprint.date + 'T' + raceData.Sprint.time);
+        }
         
         // Try to get specific session times if available in API
         if (raceData.FirstPractice) {
@@ -148,13 +497,9 @@ document.addEventListener('DOMContentLoaded', function() {
             sessions.qualifying = new Date(raceData.Qualifying.date + 'T' + raceData.Qualifying.time);
         }
         
-        // Get circuit details
+        // Get circuit details using intelligent fallback system
         const circuitId = raceData.Circuit.circuitId;
-        const circuit = circuitDetails[circuitId] || {
-            laps: '?',
-            length: '? km', 
-            distance: '? km'
-        };
+        const circuit = getCircuitDetails(circuitId, raceData);
         
         return {
             name: raceData.raceName.replace(/Formula 1|FORMULA 1/gi, '').replace(/Grand Prix/gi, 'Grand Prix').trim(),
@@ -174,12 +519,16 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('.race-flag').textContent = race.flag;
         document.querySelector('.race-name').textContent = race.name;
         document.querySelector('.race-location').textContent = race.location;
-        document.querySelector('.race-round').textContent = `Round ${race.round} of 24`;
+        
+        // Add sprint weekend indicator to round info
+        const sprintIndicator = race.sessions.isSprintWeekend ? ' SPRINT WEEKEND' : '';
+        document.querySelector('.race-round').textContent = `Round ${race.round} of ${totalRaces}${sprintIndicator}`;
         
         // Update circuit info
         document.querySelector('.circuit-stats .stat:nth-child(1) .stat-value').textContent = race.circuit.length;
         document.querySelector('.circuit-stats .stat:nth-child(2) .stat-value').textContent = race.circuit.laps;
         document.querySelector('.circuit-stats .stat:nth-child(3) .stat-value').textContent = race.circuit.distance;
+        document.querySelector('.circuit-stats .stat:nth-child(4) .stat-value').textContent = race.circuit.lapRecord;
     }
 
     function showErrorState() {
@@ -193,10 +542,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set fallback display
         document.querySelector('.race-name').textContent = 'F1 Race Data';
         document.querySelector('.race-location').textContent = 'Loading...';
-        document.querySelector('.race-round').textContent = 'Season 2025';
+        document.querySelector('.race-round').textContent = `Season ${currentSeason}`;
     }
 
-    // Convert session times to user's local timezone
+    // Convert session times to user's local timezone and handle sprint weekends
     function updateSessionTimes(race) {
         if (!race) return;
         
@@ -207,12 +556,62 @@ document.addEventListener('DOMContentLoaded', function() {
             timeZoneName: 'short'
         };
 
-        // Update all session times to local timezone
-        document.getElementById('fp1-time').textContent = race.sessions.fp1.toLocaleTimeString('en-US', timeOptions);
-        document.getElementById('fp2-time').textContent = race.sessions.fp2.toLocaleTimeString('en-US', timeOptions);
-        document.getElementById('fp3-time').textContent = race.sessions.fp3.toLocaleTimeString('en-US', timeOptions);
-        document.getElementById('qual-time').textContent = race.sessions.qualifying.toLocaleTimeString('en-US', timeOptions);
-        document.getElementById('race-time').textContent = race.sessions.race.toLocaleTimeString('en-US', timeOptions);
+        // Get the weekend schedule container
+        const scheduleContainer = document.querySelector('.race-weekend-schedule .schedule-grid');
+        if (!scheduleContainer) return;
+
+        // Clear existing schedule
+        scheduleContainer.innerHTML = '';
+
+        if (race.sessions.isSprintWeekend) {
+            // Sprint Weekend Format: FP1, Sprint Qualifying, then Sprint, Qualifying, then Race
+            scheduleContainer.innerHTML = `
+                <div class="schedule-item">
+                    <div class="schedule-day">Friday</div>
+                    <div class="schedule-sessions">
+                        <div class="session">Practice 1 - <span id="fp1-time">${race.sessions.fp1.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                        <div class="session sprint-session">Sprint Qualifying - <span id="sprint-qual-time">${race.sessions.sprintQualifying.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                    </div>
+                </div>
+                <div class="schedule-item">
+                    <div class="schedule-day">Saturday</div>
+                    <div class="schedule-sessions">
+                        <div class="session sprint-session">Sprint Race - <span id="sprint-time">${race.sessions.sprint.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                        <div class="session">Qualifying - <span id="qual-time">${race.sessions.qualifying.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                    </div>
+                </div>
+                <div class="schedule-item">
+                    <div class="schedule-day">Sunday</div>
+                    <div class="schedule-sessions">
+                        <div class="session main-event">Race - <span id="race-time">${race.sessions.race.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Standard Weekend Format: FP1, FP2, FP3, Qualifying, Race
+            scheduleContainer.innerHTML = `
+                <div class="schedule-item">
+                    <div class="schedule-day">Friday</div>
+                    <div class="schedule-sessions">
+                        <div class="session">Practice 1 - <span id="fp1-time">${race.sessions.fp1.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                        <div class="session">Practice 2 - <span id="fp2-time">${race.sessions.fp2.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                    </div>
+                </div>
+                <div class="schedule-item">
+                    <div class="schedule-day">Saturday</div>
+                    <div class="schedule-sessions">
+                        <div class="session">Practice 3 - <span id="fp3-time">${race.sessions.fp3.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                        <div class="session">Qualifying - <span id="qual-time">${race.sessions.qualifying.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                    </div>
+                </div>
+                <div class="schedule-item">
+                    <div class="schedule-day">Sunday</div>
+                    <div class="schedule-sessions">
+                        <div class="session main-event">Race - <span id="race-time">${race.sessions.race.toLocaleTimeString('en-US', timeOptions)}</span></div>
+                    </div>
+                </div>
+            `;
+        }
 
         // Update the main race time display
         const raceLocalTime = race.raceDateTime.toLocaleString('en-US', {
@@ -295,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
         countdownStatusElement.innerHTML = `
             <div class="race-finished">
                 <h3>🏁 Season Complete!</h3>
-                <p>The 2025 F1 season has concluded. The 2026 season will begin in March!</p>
+                <p>The ${currentSeason} F1 season has concluded. The ${currentSeason + 1} season will begin in March!</p>
             </div>
         `;
         

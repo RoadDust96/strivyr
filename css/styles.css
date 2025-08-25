@@ -2347,3 +2347,242 @@ main {
     align-items: center;
   }
 }
+
+/* Championship Standings Styles */
+.standings-section {
+  padding: 4rem 0;
+  background: #1a2332;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.standings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+.driver-standings, .constructor-standings {
+  background: #2a3441;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.driver-standings h3, .constructor-standings h3 {
+  margin: 0 0 1.5rem 0;
+  color: #e1e5e9;
+  font-size: 1.3rem;
+  font-weight: 600;
+  border-bottom: 2px solid #3b82f6;
+  padding-bottom: 0.5rem;
+}
+
+.standings-header {
+  display: flex !important;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #242b3a;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 2px solid #3b82f6;
+}
+
+.standings-header .header-pos {
+  width: 2.5rem;
+  margin-right: 1rem;
+  text-align: center;
+}
+
+.standings-header .header-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.standings-header .header-team {
+  margin: 0 1rem;
+  flex-shrink: 0;
+}
+
+.standings-header .header-points {
+  min-width: 4rem;
+  text-align: right;
+}
+
+.standings-header .header-wins {
+  min-width: 4rem;
+  text-align: right;
+}
+
+.standings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.standings-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: #1a2332;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.standings-item:hover {
+  background: #242b3a;
+  transform: translateX(4px);
+  border-left-color: #3b82f6;
+}
+
+.standings-item .position {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  font-weight: bold;
+  margin-right: 1rem;
+  min-width: 2.5rem;
+  background: #6b7280;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.driver-standings .standings-item:first-child .position {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #000;
+}
+
+.driver-standings .standings-item:nth-child(2) .position {
+  background: linear-gradient(135deg, #c0c0c0, #e5e5e5);
+  color: #000;
+}
+
+.driver-standings .standings-item:nth-child(3) .position {
+  background: linear-gradient(135deg, #cd7f32, #b8860b);
+  color: #fff;
+}
+
+.constructor-standings .standings-item:first-child .position {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #000;
+}
+
+.constructor-standings .standings-item:nth-child(2) .position {
+  background: linear-gradient(135deg, #c0c0c0, #e5e5e5);
+  color: #000;
+}
+
+.constructor-standings .standings-item:nth-child(3) .position {
+  background: linear-gradient(135deg, #cd7f32, #b8860b);
+  color: #fff;
+}
+
+/* Position-based styling for bronze 3rd place and gray for 4th+ */
+.standings-item.position-1 .position {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #000;
+}
+
+.standings-item.position-2 .position {
+  background: linear-gradient(135deg, #c0c0c0, #e5e5e5);
+  color: #000;
+}
+
+.standings-item.position-3 .position {
+  background: linear-gradient(135deg, #cd7f32, #d2691e);
+  color: #fff;
+}
+
+.standings-item.position-other .position {
+  background: #6b7280;
+  color: white;
+}
+
+.driver-name, .constructor-name {
+  font-weight: 600;
+  color: #e1e5e9;
+  flex: 1;
+  min-width: 0;
+  font-size: 1rem;
+}
+
+.team {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 0 1rem;
+  flex-shrink: 0;
+}
+
+.points {
+  font-weight: bold;
+  color: #3b82f6;
+  min-width: 4rem;
+  text-align: right;
+  font-size: 0.95rem;
+}
+
+.wins {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  font-style: italic;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.error {
+  color: #ef4444;
+}
+
+/* Mobile responsiveness for standings */
+@media (max-width: 768px) {
+  .standings-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .driver-standings, .constructor-standings {
+    padding: 1.5rem;
+  }
+  
+  .standings-header {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .standings-header .header-team {
+    display: none;
+  }
+  
+  .standings-item {
+    padding: 0.75rem;
+  }
+  
+  .team {
+    display: none;
+  }
+  
+  .driver-name, .constructor-name {
+    font-size: 0.9rem;
+  }
+  
+  .points {
+    font-size: 0.85rem;
+    min-width: 3rem;
+  }
+}
