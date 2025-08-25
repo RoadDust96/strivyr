@@ -1904,6 +1904,367 @@ main {
   line-height: 1.5;
 }
 
+/* F1 Page Styles */
+.f1-countdown-section {
+  padding: 4rem 0;
+  background: #0d1421;
+}
+
+.countdown-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.race-info-card {
+  background: #1a2332;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(244, 211, 94, 0.1);
+}
+
+.race-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #2a3441;
+}
+
+.race-flag {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.race-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f4d35e;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.race-location {
+  font-size: 1.1rem;
+  color: #a0a8b1;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.race-round {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 400;
+}
+
+.race-weekend-schedule h3,
+.circuit-info h3 {
+  font-size: 1.25rem;
+  color: #f4d35e;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.schedule-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.schedule-item {
+  background: #0a0e1a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #2a3441;
+}
+
+.schedule-day {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f4d35e;
+  margin-bottom: 1rem;
+}
+
+.schedule-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.session {
+  font-size: 0.95rem;
+  color: #a0a8b1;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(42, 52, 65, 0.5);
+}
+
+.session:last-child {
+  border-bottom: none;
+}
+
+.session.main-event {
+  font-weight: 600;
+  color: #f4d35e;
+  font-size: 1rem;
+}
+
+.circuit-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.stat {
+  text-align: center;
+  padding: 1rem;
+  background: #0a0e1a;
+  border-radius: 8px;
+  border: 1px solid #2a3441;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #a0a8b1;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  color: #f4d35e;
+  font-weight: 700;
+}
+
+.countdown-display {
+  background: #1a2332;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(244, 211, 94, 0.1);
+  text-align: center;
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+.countdown-display h2 {
+  font-size: 1.5rem;
+  color: #f4d35e;
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+.countdown-timer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.time-unit {
+  background: #0a0e1a;
+  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  border: 2px solid #2a3441;
+  transition: all 0.3s ease;
+}
+
+.time-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #f4d35e;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  font-family: 'Inter', monospace;
+}
+
+.time-label {
+  font-size: 0.8rem;
+  color: #a0a8b1;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.countdown-timer.final-day .time-unit {
+  border-color: #ff6b6b;
+  animation: pulse-warning 2s infinite;
+}
+
+.countdown-timer.final-hour .time-unit {
+  border-color: #ff4757;
+  background: rgba(255, 71, 87, 0.1);
+}
+
+@keyframes pulse-warning {
+  0%, 100% { border-color: #ff6b6b; }
+  50% { border-color: #ff4757; }
+}
+
+.race-time-local {
+  background: #0a0e1a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #2a3441;
+  margin-bottom: 1.5rem;
+}
+
+.local-time-label {
+  font-size: 0.9rem;
+  color: #a0a8b1;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.local-time-display {
+  font-size: 1.25rem;
+  color: #f4d35e;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.timezone-info {
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+}
+
+.countdown-status {
+  margin-top: 1rem;
+}
+
+.race-live {
+  background: linear-gradient(135deg, #ff4757, #ff3838);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  animation: live-pulse 2s infinite;
+}
+
+.race-live h3 {
+  margin: 0 0 0.5rem 0;
+  color: white !important;
+}
+
+.race-live p {
+  margin: 0;
+  color: white;
+}
+
+@keyframes live-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
+  50% { box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); }
+}
+
+.race-finished {
+  background: #2a3441;
+  color: #a0a8b1;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #3a4451;
+}
+
+.race-finished h3 {
+  margin: 0 0 0.5rem 0;
+  color: #f4d35e !important;
+}
+
+.race-finished p {
+  margin: 0;
+}
+
+/* F1 Tools Section */
+.f1-tools-section {
+  padding: 6rem 0;
+  background: #1a2332;
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.tool-card {
+  background: #0d1421;
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  text-align: center;
+  border: 1px solid #2a3441;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f4d35e, #ffeaa7);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.tool-card:hover::before {
+  transform: scaleX(1);
+}
+
+.tool-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(244, 211, 94, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.tool-icon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.tool-card:hover .tool-icon {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.tool-card h3 {
+  font-size: 1.25rem;
+  color: #f4d35e;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.tool-card p {
+  color: #a0a8b1;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.tool-status {
+  display: inline-block;
+  background: #2a3441;
+  color: #a0a8b1;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .tip-calculator-container {
@@ -1919,6 +2280,50 @@ main {
   .guidelines-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+  
+  .countdown-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin: 1rem;
+  }
+  
+  .race-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .race-flag {
+    font-size: 2.5rem;
+  }
+  
+  .race-name {
+    font-size: 1.75rem;
+  }
+  
+  .countdown-timer {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .time-value {
+    font-size: 2rem;
+  }
+  
+  .circuit-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .countdown-display {
+    position: static;
+  }
+  
+  .tools-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 0 1rem;
   }
 }
 

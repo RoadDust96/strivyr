@@ -83,6 +83,7 @@ class Navigation {
     aboutLi.appendChild(aboutLink);
     ul.appendChild(aboutLi);
     
+    
     // Projects dropdown
     const projectsLi = document.createElement('li');
     projectsLi.className = 'has-dropdown';
@@ -123,6 +124,17 @@ class Navigation {
     }
     tipLi.appendChild(tipLink);
     dropdownMenu.appendChild(tipLi);
+    
+    const f1Li = document.createElement('li');
+    const f1Link = document.createElement('a');
+    f1Link.href = 'f1.html';
+    f1Link.className = 'nav-link';
+    f1Link.textContent = 'F1 Countdown';
+    if (this.isCurrentPage('f1.html')) {
+      f1Link.classList.add('active');
+    }
+    f1Li.appendChild(f1Link);
+    dropdownMenu.appendChild(f1Li);
     
     projectsLi.appendChild(projectsToggle);
     projectsLi.appendChild(dropdownMenu);
@@ -173,18 +185,6 @@ class Navigation {
            currentPath.endsWith('/' + baseName);
   }
 
-  debugCurrentPage() {
-    console.log('=== Navigation Debug ===');
-    console.log('Current pathname:', window.location.pathname);
-    console.log('Current pathname (lowercase):', window.location.pathname.toLowerCase());
-    console.log('Filename only:', window.location.pathname.split('/').pop());
-    console.log('Is index.html?', this.isCurrentPage('index.html'));
-    console.log('Is about.html?', this.isCurrentPage('about.html'));
-    console.log('Is qr-generator.html?', this.isCurrentPage('qr-generator.html'));
-    console.log('Is tip-calculator.html?', this.isCurrentPage('tip-calculator.html'));
-    console.log('========================');
-  }
-
   autoExpandForCurrentPage() {
     // Check if current page is QR Generator (or any future project sub-page)
     if (this.isOnProjectPage()) {
@@ -202,7 +202,7 @@ class Navigation {
 
   isOnProjectPage() {
     // Check if current page is any project sub-page
-    return this.isCurrentPage('qr-generator.html') || this.isCurrentPage('tip-calculator.html');
+    return this.isCurrentPage('qr-generator.html') || this.isCurrentPage('tip-calculator.html') || this.isCurrentPage('f1.html');
   }
 
   attachEventListeners() {
