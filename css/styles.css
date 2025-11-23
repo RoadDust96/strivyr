@@ -107,11 +107,15 @@ nav {
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--black);
+  display: flex;
+  align-items: center;
   text-decoration: none;
-  letter-spacing: -0.02em;
+}
+
+.logo img {
+  height: 50px;
+  width: auto;
+  filter: invert(1) brightness(0) contrast(100%);
 }
 
 .nav-links {
