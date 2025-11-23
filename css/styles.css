@@ -11,15 +11,16 @@
 /* Root variables */
 :root {
   --primary-red: #dc2626;
+  --soft-red: #ef4444;
   --dark-red: #b91c1c;
-  --black: #dc2626;
-  --dark-gray: #343a40;
-  --medium-gray: #6c757d;
-  --light-gray: #adb5bd;
-  --text-gray: #868e96;
-  --white: #2c3e50;
-  --off-white: #34495e;
-  --border-gray: #495057;
+  --black: #e2e8f0;
+  --secondary-text: #cbd5e1;
+  --muted-text: #94a3b8;
+  --text-gray: #64748b;
+  --white: #1e293b;
+  --off-white: #334155;
+  --border-gray: #475569;
+  --card-bg: #0f172a;
 }
 
 /* Base typography and layout */
@@ -134,7 +135,7 @@ nav {
 }
 
 .nav-links a:hover {
-  color: var(--black);
+  color: var(--primary-red);
 }
 
 .nav-links a.active {
@@ -286,7 +287,7 @@ nav {
 .project-card {
   position: relative;
   overflow: hidden;
-  background: var(--white);
+  background: var(--card-bg);
   border: 1px solid var(--border-gray);
   transition: all 0.3s ease;
   text-decoration: none;
@@ -349,12 +350,12 @@ nav {
 }
 
 .project-description {
-  color: var(--text-gray);
+  color: var(--muted-text);
   margin-bottom: 1.5rem;
 }
 
 .project-link {
-  color: var(--black);
+  color: var(--primary-red);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
@@ -375,7 +376,7 @@ nav {
 
 .section-subtitle {
   font-size: 1.25rem;
-  color: var(--text-gray);
+  color: var(--secondary-text);
   max-width: 600px;
   margin: 0 auto;
 }
@@ -433,11 +434,16 @@ nav {
   font-size: 1rem;
   transition: border-color 0.2s ease;
   background: var(--white);
+  color: var(--black);
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--primary-red);
+}
+
+.form-input::placeholder {
+  color: var(--muted-text);
 }
 
 /* Animations */
@@ -527,13 +533,13 @@ nav {
 }
 
 .input-section {
-  background: var(--white);
+  background: var(--card-bg);
   padding: 2rem;
   border: 1px solid var(--border-gray);
 }
 
 .output-section {
-  background: var(--off-white);
+  background: var(--card-bg);
   padding: 2rem;
   border: 1px solid var(--border-gray);
   text-align: center;
@@ -577,15 +583,15 @@ nav {
 
 /* Footer */
 footer {
-  background: var(--white);
-  color: var(--black);
+  background: var(--card-bg);
+  color: var(--secondary-text);
   text-align: center;
   padding: 3rem 0;
   border-top: 1px solid var(--border-gray);
 }
 
 footer p {
-  color: var(--light-gray);
+  color: var(--muted-text);
   margin: 0;
 }
 
