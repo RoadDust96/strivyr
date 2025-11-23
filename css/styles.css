@@ -80,6 +80,10 @@ p {
   padding: 4rem 0;
 }
 
+.section-compact {
+  padding: 3rem 0;
+}
+
 /* Navigation */
 nav {
   position: fixed;
@@ -162,6 +166,11 @@ nav {
   text-align: center;
   padding: 8rem 2rem 4rem;
   background: var(--white);
+}
+
+.hero.hero-compact {
+  min-height: 60vh;
+  padding: 6rem 2rem 2rem;
 }
 
 .hero-content {
@@ -308,7 +317,7 @@ nav {
 }
 
 .project-content {
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 .project-header {
