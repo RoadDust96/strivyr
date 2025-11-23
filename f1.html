@@ -13,15 +13,29 @@
   <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="Strivyr" />
   <link rel="manifest" href="images/site.webmanifest" />
-  
-  <!-- CSP handled by Cloudflare headers -->
 </head>
 <body>
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <a href="index.html" class="logo">Strivyr</a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="qr-generator.html">QR Generator</a></li>
+        <li><a href="tip-calculator.html">Tip Calculator</a></li>
+        <li><a href="f1.html" class="active">F1 Countdown</a></li>
+      </ul>
+      <button class="menu-toggle" id="menu-toggle">☰</button>
+    </div>
+  </nav>
+
   <main>
     <!-- Hero Section -->
-    <section class="hero hero-small">
+    <section class="hero">
       <div class="hero-content">
-        <h1 class="hero-title">Next Race Starts In</h1>
+        <h1 class="hero-title">Formula 1 Countdown</h1>
+        <p class="hero-subtitle">Next race starts in</p>
         <div class="countdown-timer" id="countdown-timer">
           <div class="time-unit">
             <div class="time-value" id="days">--</div>
@@ -53,105 +67,110 @@
       </div>
     </section>
 
-    <!-- Next Race Countdown Section -->
-    <section class="f1-countdown-section">
+    <!-- Race Info Section -->
+    <section class="section">
       <div class="container">
-        <div class="countdown-container">
-          <div class="race-info-card">
-            <div class="race-header">
-              <div class="race-flag">🏁</div>
-              <div class="race-details">
-                <h2 class="race-name">Loading Race...</h2>
-                <div class="race-location">Please wait...</div>
-                <div class="race-round">Loading...</div>
-              </div>
+        <div class="race-info-card">
+          <div class="race-header">
+            <div class="race-flag">🏁</div>
+            <div class="race-details">
+              <h2 class="race-name">Loading Race...</h2>
+              <div class="race-location">Please wait...</div>
+              <div class="race-round">Loading...</div>
             </div>
-            
-            <div class="race-weekend-schedule">
-              <h3>Weekend Schedule</h3>
-              <div class="schedule-grid">
-                <div class="schedule-item">
-                  <div class="schedule-day">Friday</div>
-                  <div class="schedule-sessions">
-                    <div class="session">Practice 1 - <span id="fp1-time">--</span></div>
-                    <div class="session">Practice 2 - <span id="fp2-time">--</span></div>
-                  </div>
-                </div>
-                <div class="schedule-item">
-                  <div class="schedule-day">Saturday</div>
-                  <div class="schedule-sessions">
-                    <div class="session">Practice 3 - <span id="fp3-time">--</span></div>
-                    <div class="session">Qualifying - <span id="qual-time">--</span></div>
-                  </div>
-                </div>
-                <div class="schedule-item">
-                  <div class="schedule-day">Sunday</div>
-                  <div class="schedule-sessions">
-                    <div class="session main-event">Race - <span id="race-time">--</span></div>
-                  </div>
+          </div>
+          
+          <div class="race-weekend-schedule">
+            <h3 style="color: var(--black); margin-bottom: 1.5rem;">Weekend Schedule</h3>
+            <div class="schedule-grid">
+              <div class="schedule-item">
+                <div class="schedule-day">Friday</div>
+                <div class="schedule-sessions">
+                  <div class="session">Practice 1 - <span id="fp1-time">--</span></div>
+                  <div class="session">Practice 2 - <span id="fp2-time">--</span></div>
                 </div>
               </div>
-            </div>
-
-            <div class="circuit-info">
-              <h3>Circuit Information</h3>
-              <div class="circuit-stats">
-                <div class="stat">
-                  <div class="stat-label">Length</div>
-                  <div class="stat-value">-- km</div>
+              <div class="schedule-item">
+                <div class="schedule-day">Saturday</div>
+                <div class="schedule-sessions">
+                  <div class="session">Practice 3 - <span id="fp3-time">--</span></div>
+                  <div class="session">Qualifying - <span id="qual-time">--</span></div>
                 </div>
-                <div class="stat">
-                  <div class="stat-label">Laps</div>
-                  <div class="stat-value">--</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-label">Race Distance</div>
-                  <div class="stat-value">-- km</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-label">Lap Record</div>
-                  <div class="stat-value">--</div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-day">Sunday</div>
+                <div class="schedule-sessions">
+                  <div class="session main-event">Race - <span id="race-time">--</span></div>
                 </div>
               </div>
             </div>
           </div>
 
+          <div class="circuit-info">
+            <h3 style="color: var(--black); margin-bottom: 1.5rem;">Circuit Information</h3>
+            <div class="circuit-stats">
+              <div class="stat">
+                <div class="stat-label">Length</div>
+                <div class="stat-value">-- km</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Laps</div>
+                <div class="stat-value">--</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Race Distance</div>
+                <div class="stat-value">-- km</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Lap Record</div>
+                <div class="stat-value">--</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Championship Standings Section -->
-    <section class="standings-section">
+    <section class="section" style="background: var(--off-white);">
       <div class="container">
-        <h2 class="section-title">Championship Standings</h2>
+        <div class="section-header">
+          <h2 class="section-title">Championship Standings</h2>
+          <p class="section-subtitle">Current driver and constructor championships</p>
+        </div>
         <div class="standings-grid">
           <div class="driver-standings">
-            <h3>Driver Championship</h3>
+            <h3 style="color: var(--black); margin-bottom: 1.5rem;">Driver Championship</h3>
             <div class="standings-list">
-              <div class="loading">Loading driver standings...</div>
+              <div class="loading" style="color: var(--text-gray); text-align: center; padding: 2rem;">Loading driver standings...</div>
             </div>
           </div>
           <div class="constructor-standings">
-            <h3>Constructor Championship</h3>
+            <h3 style="color: var(--black); margin-bottom: 1.5rem;">Constructor Championship</h3>
             <div class="standings-list">
-              <div class="loading">Loading constructor standings...</div>
+              <div class="loading" style="color: var(--text-gray); text-align: center; padding: 2rem;">Loading constructor standings...</div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Coming Soon Section -->
-    <section class="f1-tools-section">
-      <div class="container">
-        <h2 class="section-title">F1 Tools Coming Soon</h2>
-        <div class="tools-grid">
         </div>
       </div>
     </section>
   </main>
 
-  <script src="js/navigation.js"></script>
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Strivyr. Experimental space for development and learning.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Simple mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const navLinks = document.getElementById('nav-links');
+    
+    menuToggle.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+    });
+  </script>
   <script src="js/f1-countdown.js"></script>
 </body>
 </html>

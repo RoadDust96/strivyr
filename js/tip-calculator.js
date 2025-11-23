@@ -14,12 +14,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const displayTotal = document.getElementById('display-total');
     const displayPerPerson = document.getElementById('display-per-person');
     const displayTipPerPerson = document.getElementById('display-tip-per-person');
+    const displayTotalPerPerson = document.getElementById('display-total-per-person');
 
     // Get the divider and per-person elements for hiding/showing
     const calcDivider = document.querySelector('.calc-divider');
     const perPersonElements = [
         displayPerPerson.closest('.calc-item'),
-        displayTipPerPerson.closest('.calc-item')
+        displayTipPerPerson.closest('.calc-item'),
+        displayTotalPerPerson.closest('.calc-item')
     ];
 
     // Add event listeners
@@ -81,15 +83,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Calculate per person amounts
-        const totalPerPerson = totalAmount / peopleCount;
+        const billPerPerson = billAmount / peopleCount;
         const tipPerPerson = tipAmount / peopleCount;
+        const totalPerPerson = totalAmount / peopleCount;
 
         // Update display
         displayBill.textContent = formatCurrency(billAmount);
         displayTip.textContent = formatCurrency(tipAmount);
         displayTotal.textContent = formatCurrency(totalAmount);
-        displayPerPerson.textContent = formatCurrency(totalPerPerson);
+        displayPerPerson.textContent = formatCurrency(billPerPerson);
         displayTipPerPerson.textContent = formatCurrency(tipPerPerson);
+        displayTotalPerPerson.textContent = formatCurrency(totalPerPerson);
 
         // Show/hide per-person section based on people count
         if (peopleCount === 1) {
@@ -132,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
         displayTotal.textContent = '$0.00';
         displayPerPerson.textContent = '$0.00';
         displayTipPerPerson.textContent = '$0.00';
+        displayTotalPerPerson.textContent = '$0.00';
 
         // Hide per-person section since we reset to 1 person
         calcDivider.style.display = 'none';
