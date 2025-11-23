@@ -12,14 +12,14 @@
 :root {
   --primary-red: #dc2626;
   --dark-red: #b91c1c;
-  --black: #000000;
-  --dark-gray: #111111;
-  --medium-gray: #333333;
-  --light-gray: #666666;
-  --text-gray: #888888;
-  --white: #ffffff;
-  --off-white: #fafafa;
-  --border-gray: #e5e5e5;
+  --black: #dc2626;
+  --dark-gray: #343a40;
+  --medium-gray: #6c757d;
+  --light-gray: #adb5bd;
+  --text-gray: #868e96;
+  --white: #2c3e50;
+  --off-white: #34495e;
+  --border-gray: #495057;
 }
 
 /* Base typography and layout */
@@ -90,7 +90,7 @@ nav {
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--white);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-gray);
   z-index: 1000;
@@ -115,7 +115,7 @@ nav {
 .logo img {
   height: 50px;
   width: auto;
-  filter: invert(1) brightness(0) contrast(100%);
+  filter: invert(0) brightness(2) contrast(100%);
 }
 
 .nav-links {
@@ -134,7 +134,7 @@ nav {
 }
 
 .nav-links a:hover {
-  color: var(--primary-red);
+  color: var(--black);
 }
 
 .nav-links a.active {
@@ -354,7 +354,7 @@ nav {
 }
 
 .project-link {
-  color: var(--primary-red);
+  color: var(--black);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
@@ -400,7 +400,7 @@ nav {
 .stat-number {
   font-size: 3rem;
   font-weight: 700;
-  color: var(--primary-red);
+  color: var(--black);
   margin-bottom: 0.5rem;
   line-height: 1;
 }
@@ -577,10 +577,11 @@ nav {
 
 /* Footer */
 footer {
-  background: var(--black);
-  color: var(--white);
+  background: var(--white);
+  color: var(--black);
   text-align: center;
   padding: 3rem 0;
+  border-top: 1px solid var(--border-gray);
 }
 
 footer p {
@@ -609,7 +610,7 @@ footer p {
 .time-value {
   font-size: 3rem;
   font-weight: 700;
-  color: var(--primary-red);
+  color: var(--black);
   line-height: 1;
   margin-bottom: 0.5rem;
   font-family: 'Inter', monospace;
@@ -676,7 +677,7 @@ footer p {
 
 .schedule-day {
   font-weight: 600;
-  color: var(--primary-red);
+  color: var(--black);
   margin-bottom: 1rem;
 }
 
@@ -719,7 +720,7 @@ footer p {
 
 .stat-value {
   font-size: 1.25rem;
-  color: var(--primary-red);
+  color: var(--black);
   font-weight: 700;
 }
 
@@ -801,7 +802,7 @@ footer p {
 
 .points {
   font-weight: bold;
-  color: var(--primary-red);
+  color: var(--black);
   min-width: 4rem;
   text-align: right;
 }
@@ -822,7 +823,7 @@ footer p {
 
 .local-time-display {
   font-size: 1.25rem;
-  color: var(--primary-red);
+  color: var(--black);
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
@@ -880,7 +881,7 @@ footer p {
 .calc-value {
   font-weight: 700;
   font-size: 1.25rem;
-  color: var(--primary-red);
+  color: var(--black);
 }
 
 .calc-divider {
