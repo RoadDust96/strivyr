@@ -157,7 +157,7 @@ nav {
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   border-bottom: 1px solid var(--border-subtle);
   z-index: 1000;
-  padding: var(--space-sm) 0;
+  padding: var(--space-xs) 0;
 }
 
 .nav-container {
@@ -167,16 +167,26 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 60px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
 }
 
 .logo img {
-  height: 32px;
+  height: 56px;
   width: auto;
-  transition: transform var(--transition-base);
+  display: block;
+  transition: all var(--transition-base);
+  filter: brightness(0) saturate(100%) invert(79%) sepia(95%) saturate(2551%) hue-rotate(142deg) brightness(102%) contrast(101%);
+  /* This filter converts the logo to neon cyan color */
 }
 
 .logo:hover img {
   transform: scale(1.05);
+  filter: brightness(0) saturate(100%) invert(79%) sepia(95%) saturate(2551%) hue-rotate(142deg) brightness(120%) contrast(101%) drop-shadow(0 0 10px rgba(0, 255, 249, 0.8));
 }
 
 .nav-links {
