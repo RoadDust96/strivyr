@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Formula 1 - Strivyr</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles-modern.css" />
   <!-- Favicons -->
   <link rel="icon" type="image/png" href="images/favicon-32x32.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96" />
@@ -20,11 +20,15 @@
     <div class="nav-container">
       <a href="index.html" class="logo"><img src="images/logo.png" alt="Strivyr" /></a>
       <ul class="nav-links" id="nav-links">
-        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html">Strivyr Survey</a></li>
         <li><a href="about.html">About</a></li>
-        <li><a href="qr-generator.html">QR Generator</a></li>
-        <li><a href="tip-calculator.html">Tip Calculator</a></li>
-        <li><a href="f1.html" class="active">F1 Countdown</a></li>
+        <li class="nav-dropdown">
+          <a href="#" class="nav-dropdown-toggle">Projects</a>
+          <div class="nav-dropdown-menu">
+            <a href="tip-calculator.html">Tip Calculator</a>
+            <a href="f1.html" class="active">F1 Countdown</a>
+          </div>
+        </li>
       </ul>
       <button class="menu-toggle" id="menu-toggle">☰</button>
     </div>
@@ -81,7 +85,7 @@
           </div>
           
           <div class="race-weekend-schedule">
-            <h3 style="color: var(--black); margin-bottom: 1.5rem;">Weekend Schedule</h3>
+            <h3 style="color: var(--text-primary); margin-bottom: 1.5rem;">Weekend Schedule</h3>
             <div class="schedule-grid">
               <div class="schedule-item">
                 <div class="schedule-day">Friday</div>
@@ -107,7 +111,7 @@
           </div>
 
           <div class="circuit-info">
-            <h3 style="color: var(--black); margin-bottom: 1.5rem;">Circuit Information</h3>
+            <h3 style="color: var(--text-primary); margin-bottom: 1.5rem;">Circuit Information</h3>
             <div class="circuit-stats">
               <div class="stat">
                 <div class="stat-label">Length</div>
@@ -132,7 +136,7 @@
     </section>
 
     <!-- Championship Standings Section -->
-    <section class="section-compact" style="background: var(--off-white);">
+    <section class="section-compact" style="background: var(--bg-secondary);">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">Championship Standings</h2>
@@ -140,15 +144,15 @@
         </div>
         <div class="standings-grid">
           <div class="driver-standings">
-            <h3 style="color: var(--black); margin-bottom: 1.5rem;">Driver Championship</h3>
+            <h3 style="color: var(--text-primary); margin-bottom: 1.5rem;">Driver Championship</h3>
             <div class="standings-list">
-              <div class="loading" style="color: var(--text-gray); text-align: center; padding: 2rem;">Loading driver standings...</div>
+              <div class="loading" style="color: var(--text-secondary); text-align: center; padding: 2rem;">Loading driver standings...</div>
             </div>
           </div>
           <div class="constructor-standings">
-            <h3 style="color: var(--black); margin-bottom: 1.5rem;">Constructor Championship</h3>
+            <h3 style="color: var(--text-primary); margin-bottom: 1.5rem;">Constructor Championship</h3>
             <div class="standings-list">
-              <div class="loading" style="color: var(--text-gray); text-align: center; padding: 2rem;">Loading constructor standings...</div>
+              <div class="loading" style="color: var(--text-secondary); text-align: center; padding: 2rem;">Loading constructor standings...</div>
             </div>
           </div>
         </div>

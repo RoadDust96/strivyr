@@ -18,8 +18,8 @@ class CSPManager {
                    `script-src 'self' https://cdn.jsdelivr.net 'sha256-gU7QYzzQPZTLwzGyXZcOa3DybnavaYPT4EPRuEkO5e4=' 'sha256-mjUcZYzzjVH5EzDCcha78i06Vk8WjicW5i5BzQpVUMI='; ` +
                    `style-src 'self' https://fonts.googleapis.com; ` +
                    `font-src 'self' https://fonts.gstatic.com; ` +
-                   `connect-src 'self' https://api.qrserver.com https://api.jolpi.ca; ` +
-                   `img-src 'self' https://api.qrserver.com data:; ` +
+                   `connect-src 'self' https://api.jolpi.ca; ` +
+                   `img-src 'self' data:; ` +
                    `object-src 'none'; ` +
                    `base-uri 'self'; ` +
                    `frame-ancestors 'self'; ` +

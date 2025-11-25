@@ -64,7 +64,7 @@
 
 .submit-btn {
   padding: 1rem 2.5rem;
-  background: var(--neon-cyan);
+  background: var(--neon-cyan-dim);
   color: var(--black);
   border: none;
   border-radius: var(--radius-full);
@@ -74,7 +74,7 @@
   cursor: pointer;
   transition: all var(--transition-base);
   white-space: nowrap;
-  box-shadow: var(--shadow-md), var(--shadow-glow-cyan);
+  box-shadow: var(--shadow-md), 0 0 15px rgba(0, 255, 249, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -353,15 +353,15 @@
   align-items: center;
   padding: 0.375rem 0.875rem;
   background: var(--black);
-  color: var(--neon-cyan);
-  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan-dim);
+  border: 1px solid var(--neon-cyan-dim);
   font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   border-radius: var(--radius-full);
-  box-shadow: 0 0 15px rgba(0, 255, 249, 0.4), inset 0 0 10px rgba(0, 255, 249, 0.1);
-  text-shadow: 0 0 8px var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 255, 249, 0.25), inset 0 0 8px rgba(0, 255, 249, 0.08);
+  text-shadow: 0 0 5px rgba(0, 255, 249, 0.5);
 }
 
 /* Pagination - Modern button design */

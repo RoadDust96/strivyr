@@ -23,12 +23,11 @@
     <div class="nav-container">
       <a href="index.html" class="logo"><img src="images/logo.png" alt="Strivyr" /></a>
       <ul class="nav-links" id="nav-links">
-        <li><a href="index.html" class="active">Survey Tool</a></li>
+        <li><a href="index.html" class="active">Strivyr Survey</a></li>
         <li><a href="about.html">About</a></li>
         <li class="nav-dropdown">
-          <a href="#" class="nav-dropdown-toggle">Projects ▾</a>
+          <a href="#" class="nav-dropdown-toggle">Projects</a>
           <div class="nav-dropdown-menu">
-            <a href="qr-generator.html">QR Generator</a>
             <a href="tip-calculator.html">Tip Calculator</a>
             <a href="f1.html">F1 Countdown</a>
           </div>
@@ -78,10 +77,6 @@
         <div id="results-section" class="results-section">
           <div class="results-header">
             <h2 class="domain-title" id="domain-title"></h2>
-            <div class="export-buttons">
-              <button class="export-btn" id="export-csv">Download CSV</button>
-              <button class="export-btn" id="export-json">Download JSON</button>
-            </div>
           </div>
 
           <!-- Radar Chart -->
@@ -94,6 +89,10 @@
           <!-- Data Table -->
           <div class="table-container">
             <div class="table-controls">
+              <div class="export-buttons">
+                <button class="export-btn" id="export-csv">Download CSV</button>
+                <button class="export-btn" id="export-json">Download JSON</button>
+              </div>
               <input
                 type="text"
                 id="search-box"
@@ -138,6 +137,26 @@
     let sortDirection = 'asc';
     let radarChart = null;
 
+    // Security: Input sanitization utility
+    const sanitizeHTML = (str) => {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    };
+
+    // Sanitize and validate domain input
+    const sanitizeDomain = (domain) => {
+      if (!domain) return '';
+      // Remove any HTML tags, scripts, and dangerous characters
+      let sanitized = sanitizeHTML(domain);
+      // Allow only alphanumeric, dots, hyphens, and underscores
+      sanitized = sanitized.replace(/[^a-zA-Z0-9.-]/g, '');
+      // Remove leading/trailing dots and hyphens
+      sanitized = sanitized.replace(/^[.-]+|[.-]+$/g, '');
+      return sanitized.toLowerCase();
+    };
+
     // DOM elements
     const domainForm = document.getElementById('domain-form');
     const domainInput = document.getElementById('domain-input');
@@ -164,9 +183,23 @@
     // Form submission
     domainForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const domain = domainInput.value.trim();
+      const rawDomain = domainInput.value.trim();
 
-      if (!domain) return;
+      if (!rawDomain) return;
+
+      // Sanitize domain input
+      const domain = sanitizeDomain(rawDomain);
+
+      if (!domain) {
+        showError('Invalid domain format. Please enter a valid domain name.');
+        return;
+      }
+
+      // Validate domain format
+      if (domain.length < 3 || domain.length > 253) {
+        showError('Domain name must be between 3 and 253 characters.');
+        return;
+      }
 
       // Reset state
       errorMessage.style.display = 'none';
@@ -220,7 +253,8 @@
 
     // Process API results
     function processResults(domain, data) {
-      domainTitle.textContent = domain;
+      // Sanitize domain before displaying
+      domainTitle.textContent = sanitizeDomain(domain);
 
       // Build table data
       tableData = buildTableData(data);
@@ -251,14 +285,12 @@
               Object.entries(item).forEach(([key, value]) => {
                 rows.push({
                   type: type,
-                  field: key,
                   value: Array.isArray(value) ? value.join(', ') : String(value)
                 });
               });
             } else {
               rows.push({
                 type: type,
-                field: fieldKey || `Record ${index + 1}`,
                 value: String(item)
               });
             }
@@ -267,11 +299,32 @@
           Object.entries(items).forEach(([key, value]) => {
             rows.push({
               type: type,
-              field: key,
               value: Array.isArray(value) ? value.join(', ') : String(value)
             });
           });
         }
+      };
+
+      // Special handler for MX records to combine priority and exchange
+      const addMxRows = (items) => {
+        if (!items || !Array.isArray(items) || items.length === 0) return;
+
+        items.forEach(item => {
+          if (typeof item === 'object') {
+            const hasPriority = 'priority' in item && item.priority !== null && item.priority !== undefined;
+            const hasExchange = 'exchange' in item && item.exchange !== null && item.exchange !== undefined;
+
+            // Display if either field is populated
+            if (hasPriority || hasExchange) {
+              const priorityValue = hasPriority ? item.priority : '(Priority)';
+              const exchangeValue = hasExchange ? item.exchange : '(Exchange)';
+              rows.push({
+                type: 'MX Records',
+                value: `${priorityValue}:${exchangeValue}`
+              });
+            }
+          }
+        });
       };
 
       // Process each data type
@@ -279,7 +332,7 @@
         addRows('A Records', data.dns.A);
         addRows('AAAA Records', data.dns.AAAA);
         addRows('CNAME Records', data.dns.CNAME);
-        addRows('MX Records', data.dns.MX);
+        addMxRows(data.dns.MX); // Use special handler for MX records
         addRows('TXT Records', data.dns.TXT);
         addRows('NS Records', data.dns.NS);
         addRows('SOA Records', data.dns.SOA);
@@ -413,7 +466,9 @@
 
     // Search functionality
     searchBox.addEventListener('input', (e) => {
-      const searchTerm = e.target.value.toLowerCase();
+      // Sanitize search input
+      const rawSearch = e.target.value.toLowerCase();
+      const searchTerm = sanitizeHTML(rawSearch);
 
       if (!searchTerm) {
         filteredData = [...tableData];
@@ -468,11 +523,11 @@
       const end = start + itemsPerPage;
       const pageData = filteredData.slice(start, end);
 
-      // Render rows
+      // Render rows - sanitize all data before rendering
       tableBody.innerHTML = pageData.map(row => `
         <tr>
-          <td><span class="type-badge">${row.type}</span></td>
-          <td>${row.value}</td>
+          <td><span class="type-badge">${sanitizeHTML(row.type)}</span></td>
+          <td>${sanitizeHTML(row.value)}</td>
         </tr>
       `).join('');
 

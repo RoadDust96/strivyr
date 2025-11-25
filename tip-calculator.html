@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tip Calculator - Strivyr</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles-modern.css" />
   <!-- Favicons -->
   <link rel="icon" type="image/png" href="images/favicon-32x32.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96" />
@@ -20,11 +20,15 @@
     <div class="nav-container">
       <a href="index.html" class="logo"><img src="images/logo.png" alt="Strivyr" /></a>
       <ul class="nav-links" id="nav-links">
-        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html">Strivyr Survey</a></li>
         <li><a href="about.html">About</a></li>
-        <li><a href="qr-generator.html">QR Generator</a></li>
-        <li><a href="tip-calculator.html" class="active">Tip Calculator</a></li>
-        <li><a href="f1.html">F1 Countdown</a></li>
+        <li class="nav-dropdown">
+          <a href="#" class="nav-dropdown-toggle">Projects</a>
+          <div class="nav-dropdown-menu">
+            <a href="tip-calculator.html" class="active">Tip Calculator</a>
+            <a href="f1.html">F1 Countdown</a>
+          </div>
+        </li>
       </ul>
       <button class="menu-toggle" id="menu-toggle">☰</button>
     </div>
@@ -44,7 +48,7 @@
       <div class="tool-container">
         <div class="tool-grid">
           <div class="input-section">
-            <h3 style="margin-bottom: 2rem; color: var(--black);">Enter Bill Details</h3>
+            <h3 style="margin-bottom: 2rem; color: var(--text-primary);">Enter Bill Details</h3>
             
             <div class="form-group">
               <label for="bill-amount" class="form-label">Bill Amount:</label>
@@ -76,7 +80,7 @@
           </div>
           
           <div class="output-section">
-            <h3 style="margin-bottom: 2rem; color: var(--black);">Calculation Results</h3>
+            <h3 style="margin-bottom: 2rem; color: var(--text-primary);">Calculation Results</h3>
             <div class="calculation-display">
               <div class="calc-item">
                 <div class="calc-label">Bill Amount</div>
@@ -114,7 +118,7 @@
     </section>
 
     <!-- Info Section -->
-    <section class="section-small" style="background: var(--off-white);">
+    <section class="section-small" style="background: var(--bg-secondary);">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">Tipping Guidelines</h2>

@@ -99,18 +99,7 @@ class Navigation {
     const dropdownMenu = document.createElement('ul');
     dropdownMenu.className = 'dropdown-menu';
     dropdownMenu.id = 'projects-menu';
-    
-    const qrLi = document.createElement('li');
-    const qrLink = document.createElement('a');
-    qrLink.href = 'qr-generator.html';
-    qrLink.className = 'nav-link';
-    qrLink.textContent = 'QR Code Generator';
-    if (this.isCurrentPage('qr-generator.html')) {
-      qrLink.classList.add('active');
-    }
-    qrLi.appendChild(qrLink);
-    dropdownMenu.appendChild(qrLi);
-    
+
     const tipLi = document.createElement('li');
     const tipLink = document.createElement('a');
     tipLink.href = 'tip-calculator.html';
@@ -183,11 +172,11 @@ class Navigation {
   }
 
   autoExpandForCurrentPage() {
-    // Check if current page is QR Generator (or any future project sub-page)
+    // Check if current page is a project sub-page
     if (this.isOnProjectPage()) {
       const projectsMenu = document.getElementById('projects-menu');
       const projectsToggle = document.getElementById('projects-toggle');
-      
+
       if (projectsMenu && projectsToggle) {
         // Expand the dropdown
         projectsMenu.classList.add('open');
@@ -199,7 +188,7 @@ class Navigation {
 
   isOnProjectPage() {
     // Check if current page is any project sub-page
-    return this.isCurrentPage('qr-generator.html') || this.isCurrentPage('tip-calculator.html') || this.isCurrentPage('f1.html');
+    return this.isCurrentPage('tip-calculator.html') || this.isCurrentPage('f1.html');
   }
 
   attachEventListeners() {
