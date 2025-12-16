@@ -94,7 +94,10 @@
               <div>
                 <h3 style="color: var(--text-primary); margin-bottom: var(--space-md); font-size: 1.125rem;">Top Related Domains</h3>
                 <div class="related-preview" id="related-preview">
-                  <p style="color: var(--text-secondary); font-size: 0.875rem;">Analyzing...</p>
+                  <div class="spinner-container">
+                    <div class="spinner spinner-small"></div>
+                    <span class="spinner-text">Analyzing...</span>
+                  </div>
                 </div>
                 <a href="#" class="view-all-link" id="view-all-related">View all related domains</a>
               </div>
@@ -131,14 +134,6 @@
 
             <!-- Tab 1: DNS Records -->
             <div id="tab-dns" class="tab-content active" role="tabpanel">
-              <!-- Full-size radar chart -->
-              <div class="chart-container" style="margin-bottom: var(--space-xl);">
-                <h3 style="color: var(--text-primary); margin-bottom: var(--space-lg);">DNS Records Distribution</h3>
-                <div class="chart-wrapper">
-                  <canvas id="radar-chart"></canvas>
-                </div>
-              </div>
-
               <div class="table-controls">
                 <input
                   type="text"
@@ -169,7 +164,10 @@
             <div id="tab-related" class="tab-content" role="tabpanel">
               <div class="related-domains-container">
                 <div id="related-domains-content">
-                  <p style="color: var(--text-secondary);">Searching for related domains...</p>
+                  <div class="spinner-container">
+                    <div class="spinner"></div>
+                    <span class="spinner-text">Searching for related domains...</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -194,7 +192,6 @@
     const itemsPerPage = 20;
     let sortColumn = null;
     let sortDirection = 'asc';
-    let radarChart = null;
 
     // Security: Input sanitization utility
     const sanitizeHTML = (str) => {
@@ -214,6 +211,35 @@
       // Remove leading/trailing dots and hyphens
       sanitized = sanitized.replace(/^[.-]+|[.-]+$/g, '');
       return sanitized.toLowerCase();
+    };
+
+    // Extract apex/root domain from any domain (e.g., "docs.google.com" -> "google.com")
+    const extractApexDomain = (domain) => {
+      if (!domain) return '';
+
+      // Remove wildcards and clean up
+      let cleaned = domain.replace(/^\*\./, '').toLowerCase().trim();
+
+      // Split into parts
+      const parts = cleaned.split('.');
+
+      // If less than 2 parts, it's invalid
+      if (parts.length < 2) return cleaned;
+
+      // Handle special multi-part TLDs (co.uk, com.au, etc.)
+      const specialTLDs = ['co.uk', 'com.au', 'co.nz', 'co.za', 'com.br', 'co.jp', 'co.kr', 'gov.uk', 'ac.uk'];
+
+      // Check if domain ends with special TLD
+      if (parts.length >= 3) {
+        const lastTwoParts = parts.slice(-2).join('.');
+        if (specialTLDs.includes(lastTwoParts)) {
+          // Return last 3 parts (domain + special TLD)
+          return parts.slice(-3).join('.');
+        }
+      }
+
+      // Standard TLD - return last 2 parts (domain.tld)
+      return parts.slice(-2).join('.');
     };
 
     // DOM elements
@@ -283,7 +309,14 @@
         return;
       }
 
-      // Validate domain format
+      // Validate domain format with regex
+      const domainRegex = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/i;
+      if (!domainRegex.test(domain)) {
+        showError('Invalid domain format. Please enter a valid domain name (e.g., example.com).');
+        return;
+      }
+
+      // Validate domain length
       if (domain.length < 3 || domain.length > 253) {
         showError('Domain name must be between 3 and 253 characters.');
         return;
@@ -349,18 +382,34 @@
         });
 
         if (!response.ok) {
-          throw new Error(`WHOIS fetch failed: ${response.status}`);
+          console.warn(`WHOIS unavailable for ${domain} (${response.status}) - continuing without WHOIS data`);
+          return {
+            registrant: {},
+            registrar: '',
+            nameservers: [],
+            created: '',
+            emails: [],
+            organization: ''
+          };
         }
 
         const result = await response.json();
 
         if (!result.success) {
-          throw new Error(result.error || 'WHOIS fetch failed');
+          console.warn(`WHOIS unavailable for ${domain} - ${result.error || 'service unavailable'} - continuing without WHOIS data`);
+          return {
+            registrant: {},
+            registrar: '',
+            nameservers: [],
+            created: '',
+            emails: [],
+            organization: ''
+          };
         }
 
         return result.data;
       } catch (error) {
-        console.error('Error fetching WHOIS data:', error);
+        console.warn(`WHOIS unavailable for ${domain} - continuing without WHOIS data`);
         return {
           registrant: {},
           registrar: '',
@@ -382,18 +431,20 @@
         });
 
         if (!response.ok) {
-          throw new Error(`CT log fetch failed: ${response.status}`);
+          console.warn(`Certificate Transparency logs unavailable for ${domain} (${response.status}) - continuing without CT data`);
+          return { certificates: [], relatedDomains: [] };
         }
 
         const result = await response.json();
 
         if (!result.success) {
-          throw new Error(result.error || 'CT log fetch failed');
+          console.warn(`Certificate Transparency logs unavailable for ${domain} - ${result.error || 'service unavailable'}`);
+          return { certificates: [], relatedDomains: [] };
         }
 
         return result.data;
       } catch (error) {
-        console.error('Error fetching CT logs:', error);
+        console.warn(`Certificate Transparency logs unavailable for ${domain} - continuing without CT data`);
         return { certificates: [], relatedDomains: [] };
       }
     }
@@ -408,9 +459,8 @@
       filteredData = [...tableData];
       currentPage = 1;
 
-      // Create BOTH radar charts
-      createRadarChart(data);        // Full-size chart (will be in tab)
-      createMiniRadarChart(data);    // Mini chart for summary
+      // Create mini radar chart for summary
+      createMiniRadarChart(data);
 
       // Render table
       renderTable();
@@ -501,104 +551,6 @@
       }
 
       return rows;
-    }
-
-    // Create radar chart
-    function createRadarChart(data) {
-      const chartData = {
-        'CNAME Records': getCount(data.dns?.CNAME),
-        'A Records': getCount(data.dns?.A),
-        'AAAA Records': getCount(data.dns?.AAAA),
-        'MX Records': getCount(data.dns?.MX),
-        'NS Records': getCount(data.dns?.NS)
-      };
-
-      const ctx = document.getElementById('radar-chart');
-
-      // Destroy existing chart
-      if (radarChart) {
-        radarChart.destroy();
-      }
-
-      radarChart = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: Object.keys(chartData),
-          datasets: [{
-            label: 'Metadata Count',
-            data: Object.values(chartData),
-            backgroundColor: 'rgba(0, 255, 249, 0.1)',
-            borderColor: 'rgba(0, 255, 249, 1)',
-            borderWidth: 3,
-            pointBackgroundColor: 'rgba(0, 255, 249, 1)',
-            pointBorderColor: '#000000',
-            pointHoverBackgroundColor: 'rgba(0, 255, 249, 1)',
-            pointHoverBorderColor: '#ffffff',
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            pointBorderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          scales: {
-            r: {
-              beginAtZero: true,
-              ticks: {
-                stepSize: 1,
-                color: '#94a3b8',
-                backdropColor: 'transparent',
-                font: {
-                  size: 11,
-                  family: 'Inter, sans-serif',
-                  weight: '500'
-                }
-              },
-              grid: {
-                color: '#334155',
-                lineWidth: 1
-              },
-              angleLines: {
-                color: '#334155',
-                lineWidth: 1
-              },
-              pointLabels: {
-                color: '#e2e8f0',
-                font: {
-                  size: 13,
-                  family: 'Inter, sans-serif',
-                  weight: '600'
-                },
-                padding: 10
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              titleColor: '#e2e8f0',
-              bodyColor: '#cbd5e1',
-              borderColor: '#475569',
-              borderWidth: 1,
-              padding: 12,
-              cornerRadius: 8,
-              titleFont: {
-                size: 13,
-                weight: '600',
-                family: 'Inter, sans-serif'
-              },
-              bodyFont: {
-                size: 12,
-                family: 'Inter, sans-serif'
-              }
-            }
-          }
-        }
-      });
     }
 
     // Create mini radar chart (250px version for summary)
@@ -903,13 +855,16 @@
         }
 
         // Shared mail servers (2 points)
-        const mxOverlap = findArrayOverlap(
-          originalData.dns.MX?.map(mx => mx.exchange || mx),
-          relatedData.dns.MX?.map(mx => mx.exchange || mx)
-        );
-        if (mxOverlap.length > 0) {
-          points += 2;
-          signals.push({ type: 'shared_mx', value: `${mxOverlap.length} shared mail servers`, points: 2 });
+        // Check if MX is an array before calling .map()
+        if (Array.isArray(originalData.dns.MX) && Array.isArray(relatedData.dns.MX)) {
+          const mxOverlap = findArrayOverlap(
+            originalData.dns.MX.map(mx => mx.exchange || mx),
+            relatedData.dns.MX.map(mx => mx.exchange || mx)
+          );
+          if (mxOverlap.length > 0) {
+            points += 2;
+            signals.push({ type: 'shared_mx', value: `${mxOverlap.length} shared mail servers`, points: 2 });
+          }
         }
       }
 
@@ -969,14 +924,55 @@
 
       if (!relatedDomains || relatedDomains.length === 0) {
         container.innerHTML = '<p style="color: var(--text-secondary);">No related domains found.</p>';
+        // Update preview and stats with empty data
+        displayRelatedPreview([]);
+        updateQuickStats(tableData, []);
         return;
       }
 
-      // Show loading state
-      container.innerHTML = '<p style="color: var(--text-secondary);">Analyzing related domains...</p>';
+      // Filter to only apex domains (remove subdomains)
+      const originalApex = extractApexDomain(originalDomain);
 
-      // Fetch DNS and WHOIS data for each related domain in parallel
-      const relatedDataPromises = relatedDomains.map(async (domain) => {
+      // Extract apex domains from all related domains
+      const apexDomains = relatedDomains
+        .map(domain => extractApexDomain(domain))
+        .filter(apex => {
+          // Filter out the original domain
+          if (apex === originalApex) return false;
+          // Filter out empty/invalid
+          if (!apex || apex.length < 3) return false;
+          return true;
+        });
+
+      // Remove duplicates
+      const uniqueApexDomains = [...new Set(apexDomains)];
+
+      if (uniqueApexDomains.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-secondary);">No related apex domains found. Only subdomains were discovered.</p>';
+        displayRelatedPreview([]);
+        updateQuickStats(tableData, []);
+        return;
+      }
+
+      // Use all unique apex domains (sequential processing with delays prevents rate limiting)
+      const limitedDomains = uniqueApexDomains;
+
+      // Show loading state with spinner
+      container.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner"></div>
+          <span class="spinner-text">Analyzing ${limitedDomains.length} related domains...</span>
+        </div>
+      `;
+
+      // Helper function to delay between requests
+      const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+      // Fetch data sequentially with delays to avoid rate limiting
+      const relatedDataResults = [];
+      for (let i = 0; i < limitedDomains.length; i++) {
+        const domain = limitedDomains[i];
+
         try {
           // Fetch DNS data from your existing API
           const dnsResponse = await fetch('https://survey.strivyr.com/api/lookup', {
@@ -986,25 +982,38 @@
           });
           const dnsData = await dnsResponse.json();
 
+          // Small delay between requests to avoid rate limiting
+          await delay(300);
+
           // Fetch WHOIS data
           const whoisData = await fetchWhoisData(domain);
 
-          return {
+          relatedDataResults.push({
             domain: domain,
             dns: dnsData.dns || {},
             whois: whoisData
-          };
+          });
+
+          // Small delay before next domain
+          await delay(300);
+
         } catch (error) {
           console.error(`Error fetching data for ${domain}:`, error);
-          return {
+          relatedDataResults.push({
             domain: domain,
             dns: {},
             whois: {}
-          };
+          });
         }
-      });
 
-      const relatedDataResults = await Promise.all(relatedDataPromises);
+        // Update loading message with progress and spinner
+        container.innerHTML = `
+          <div class="spinner-container">
+            <div class="spinner"></div>
+            <span class="spinner-text">Analyzing related domains... (${i + 1}/${limitedDomains.length})</span>
+          </div>
+        `;
+      }
 
       // Calculate confidence for each domain with full data
       const confidencePromises = relatedDataResults.map(async (relatedData) => {
