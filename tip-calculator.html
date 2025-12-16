@@ -6,7 +6,6 @@
   <title>Tip Calculator - Strivyr</title>
   <link rel="stylesheet" href="css/styles-modern.css" />
   <!-- Favicons -->
-  <link rel="icon" type="image/png" href="images/favicon-32x32.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg" />
   <link rel="shortcut icon" href="images/favicon.ico" />
@@ -21,7 +20,6 @@
       <a href="index.html" class="logo"><img src="images/logo.png" alt="Strivyr" /></a>
       <ul class="nav-links" id="nav-links">
         <li><a href="index.html">Strivyr Survey</a></li>
-        <li><a href="about.html">About</a></li>
         <li class="nav-dropdown">
           <a href="#" class="nav-dropdown-toggle">Projects</a>
           <div class="nav-dropdown-menu">
@@ -116,39 +114,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Info Section -->
-    <section class="section-small" style="background: var(--bg-secondary);">
-      <div class="container">
-        <div class="section-header">
-          <h2 class="section-title">Tipping Guidelines</h2>
-          <p class="section-subtitle">General guidelines for different service types</p>
-        </div>
-        
-        <div class="grid grid-3">
-          <div class="card">
-            <h3>Restaurants</h3>
-            <p><strong>15-20%</strong> for standard service<br>
-            <strong>20-25%</strong> for excellent service<br>
-            <strong>10-15%</strong> for poor service</p>
-          </div>
-
-          <div class="card">
-            <h3>Delivery & Takeout</h3>
-            <p><strong>10-15%</strong> for delivery<br>
-            <strong>$2-5</strong> minimum for short distances<br>
-            <strong>0-10%</strong> for takeout</p>
-          </div>
-
-          <div class="card">
-            <h3>Other Services</h3>
-            <p><strong>15-20%</strong> for taxi/rideshare<br>
-            <strong>$1-2</strong> per drink at bars<br>
-            <strong>15-20%</strong> for hair/beauty services</p>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
   <footer>
@@ -157,15 +122,7 @@
     </div>
   </footer>
 
-  <script>
-    // Simple mobile menu toggle
-    const menuToggle = document.getElementById('menu-toggle');
-    const navLinks = document.getElementById('nav-links');
-    
-    menuToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('active');
-    });
-  </script>
+  <script src="js/mobile-menu.js"></script>
   <script src="js/tip-calculator.js"></script>
 </body>
 </html>

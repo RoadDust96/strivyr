@@ -1,7 +1,5 @@
-// F1 Countdown Timer  
-console.log('F1 script starting to load');
+// F1 Countdown Timer
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('F1 countdown script loaded');
     // Initialize with loading state
     let nextRace = null;
     let totalRaces = 0;
@@ -203,7 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // If no flag found, return default racing flag
-        console.warn(`No flag found for country: "${countryName}". Using default flag.`);
         return '🏁';
     }
     
@@ -226,7 +223,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         for (const variation of variations) {
             if (circuitDetails[variation]) {
-                console.log(`Found circuit details using variation: ${variation} for ${circuitId}`);
                 return circuitDetails[variation];
             }
         }
@@ -238,22 +234,18 @@ document.addEventListener('DOMContentLoaded', function() {
             distance: '300.0 km',
             lapRecord: 'N/A'
         };
-        
-        console.warn(`No circuit details found for: "${circuitId}". Using fallback data.`, fallbackData);
+
         return fallbackData;
     }
 
     // Fetch current driver standings from API
     async function fetchDriverStandings() {
         try {
-            console.log('Attempting to fetch driver standings...');
             const response = await fetch('https://api.jolpi.ca/ergast/f1/current/driverStandings.json');
-            console.log('Driver standings response:', response);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            console.log('Driver standings data:', data);
             return data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
         } catch (error) {
             console.error('Error fetching driver standings:', error);
@@ -283,9 +275,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Find just the standings-list div to replace, not the entire container
         const standingsList = container.querySelector('.standings-list');
-        
+
         if (standingsList) {
-            console.log('Driver standings list found, updating content');
             // Only replace the content of the standings-list, preserve everything else
             standingsList.innerHTML = `
                 <div class="standings-header">
@@ -323,9 +314,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Find just the standings-list div to replace, not the entire container
         const standingsList = container.querySelector('.standings-list');
-        
+
         if (standingsList) {
-            console.log('Constructor standings list found, updating content');
             standingsList.innerHTML = `
                 <div class="standings-header">
                     <span class="header-pos">Pos</span>
@@ -358,15 +348,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch and display both standings
     async function fetchStandings() {
         try {
-            console.log('Fetching standings...');
             // Fetch both standings in parallel
             const [driverStandings, constructorStandings] = await Promise.all([
                 fetchDriverStandings(),
                 fetchConstructorStandings()
             ]);
-
-            console.log('Driver standings:', driverStandings);
-            console.log('Constructor standings:', constructorStandings);
 
             // Display standings
             displayDriverStandings(driverStandings);

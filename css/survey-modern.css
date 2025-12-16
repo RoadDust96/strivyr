@@ -416,6 +416,182 @@
   padding: 0 var(--space-xs);
 }
 
+/* Tab Navigation */
+.tab-navigation {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  border-bottom: 2px solid var(--border-default);
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  position: relative;
+  padding: var(--space-md) var(--space-lg);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(0, 255, 249, 0.05);
+}
+
+.tab-btn.active {
+  color: var(--neon-cyan);
+  border-bottom-color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(0, 255, 249, 0.5);
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Tab Content Panels */
+.tab-content {
+  display: none;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Compact Summary Section */
+.summary-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+/* Mini Chart Container */
+.mini-chart-container {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  position: relative;
+}
+
+.mini-chart-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+/* Top Related Domains Preview */
+.related-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.related-preview-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: var(--transition-base);
+}
+
+.related-preview-card:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+.preview-domain {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.preview-confidence {
+  background: var(--neon-cyan);
+  color: var(--black);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* Quick Stats */
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-default);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  text-shadow: var(--shadow-glow-cyan);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: var(--space-xs);
+}
+
+/* View All Link */
+.view-all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--neon-cyan);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: var(--space-md);
+  transition: var(--transition-base);
+}
+
+.view-all-link:hover {
+  text-shadow: var(--shadow-glow-cyan);
+  gap: var(--space-sm);
+}
+
+.view-all-link::after {
+  content: '→';
+  transition: var(--transition-fast);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .domain-form {
@@ -475,6 +651,20 @@
     min-width: 36px;
     height: 36px;
     font-size: 0.8125rem;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tab-navigation {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .tab-btn {
+    border-bottom: 1px solid var(--border-default);
+    border-radius: 0;
   }
 }
 

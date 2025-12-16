@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="css/styles-modern.css" />
   <link rel="stylesheet" href="css/survey-modern.css" />
   <!-- Favicons -->
-  <link rel="icon" type="image/png" href="images/favicon-32x32.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg" />
   <link rel="shortcut icon" href="images/favicon.ico" />
@@ -24,7 +23,6 @@
       <a href="index.html" class="logo"><img src="images/logo.png" alt="Strivyr" /></a>
       <ul class="nav-links" id="nav-links">
         <li><a href="index.html" class="active">Strivyr Survey</a></li>
-        <li><a href="about.html">About</a></li>
         <li class="nav-dropdown">
           <a href="#" class="nav-dropdown-toggle">Projects</a>
           <div class="nav-dropdown-menu">
@@ -77,43 +75,104 @@
         <div id="results-section" class="results-section">
           <div class="results-header">
             <h2 class="domain-title" id="domain-title"></h2>
-          </div>
-
-          <!-- Radar Chart -->
-          <div class="chart-container">
-            <div class="chart-wrapper">
-              <canvas id="radar-chart"></canvas>
+            <div class="export-buttons">
+              <button class="export-btn" id="export-csv">Download CSV</button>
+              <button class="export-btn" id="export-json">Download JSON</button>
             </div>
           </div>
 
-          <!-- Data Table -->
-          <div class="table-container">
-            <div class="table-controls">
-              <div class="export-buttons">
-                <button class="export-btn" id="export-csv">Download CSV</button>
-                <button class="export-btn" id="export-json">Download JSON</button>
+          <!-- Summary Section -->
+          <div class="summary-section">
+            <div class="summary-grid">
+              <!-- Mini Radar Chart -->
+              <div class="mini-chart-container">
+                <h3 style="color: var(--text-primary); margin-bottom: var(--space-md); font-size: 1.125rem;">DNS Overview</h3>
+                <canvas id="mini-radar-chart" width="250" height="250"></canvas>
               </div>
-              <input
-                type="text"
-                id="search-box"
-                class="search-box"
-                placeholder="Search results..."
-              />
-              <span class="pagination-info" id="pagination-info"></span>
+
+              <!-- Top Related Domains Preview -->
+              <div>
+                <h3 style="color: var(--text-primary); margin-bottom: var(--space-md); font-size: 1.125rem;">Top Related Domains</h3>
+                <div class="related-preview" id="related-preview">
+                  <p style="color: var(--text-secondary); font-size: 0.875rem;">Analyzing...</p>
+                </div>
+                <a href="#" class="view-all-link" id="view-all-related">View all related domains</a>
+              </div>
             </div>
 
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th class="sortable" data-column="type">Type</th>
-                  <th class="sortable" data-column="value">Value</th>
-                </tr>
-              </thead>
-              <tbody id="table-body">
-              </tbody>
-            </table>
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+              <div class="stat-item">
+                <div class="stat-value" id="stat-total-records">--</div>
+                <div class="stat-label">Total Records</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="stat-related-count">--</div>
+                <div class="stat-label">Related Domains</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="stat-high-confidence">--</div>
+                <div class="stat-label">High Confidence</div>
+              </div>
+            </div>
+          </div>
 
-            <div class="pagination" id="pagination"></div>
+          <!-- Tabbed Detail Sections -->
+          <div class="tabbed-details">
+            <!-- Tab Navigation -->
+            <div class="tab-navigation" role="tablist">
+              <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-dns" data-tab="dns">
+                Full DNS Records
+              </button>
+              <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-related" data-tab="related">
+                All Related Domains
+              </button>
+            </div>
+
+            <!-- Tab 1: DNS Records -->
+            <div id="tab-dns" class="tab-content active" role="tabpanel">
+              <!-- Full-size radar chart -->
+              <div class="chart-container" style="margin-bottom: var(--space-xl);">
+                <h3 style="color: var(--text-primary); margin-bottom: var(--space-lg);">DNS Records Distribution</h3>
+                <div class="chart-wrapper">
+                  <canvas id="radar-chart"></canvas>
+                </div>
+              </div>
+
+              <div class="table-controls">
+                <input
+                  type="text"
+                  id="search-box"
+                  class="search-box"
+                  placeholder="Search records..."
+                />
+                <span class="pagination-info" id="pagination-info"></span>
+              </div>
+
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th class="sortable" data-column="type">Type</th>
+                      <th class="sortable" data-column="value">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody id="table-body">
+                  </tbody>
+                </table>
+
+                <div class="pagination" id="pagination"></div>
+              </div>
+            </div>
+
+            <!-- Tab 2: Related Domains -->
+            <div id="tab-related" class="tab-content" role="tabpanel">
+              <div class="related-domains-container">
+                <div id="related-domains-content">
+                  <p style="color: var(--text-secondary);">Searching for related domains...</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -172,13 +231,42 @@
     const exportCsvBtn = document.getElementById('export-csv');
     const exportJsonBtn = document.getElementById('export-json');
 
-    // Mobile menu toggle
-    const menuToggle = document.getElementById('menu-toggle');
-    const navLinks = document.getElementById('nav-links');
+    // Tab management
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const viewAllRelatedLink = document.getElementById('view-all-related');
 
-    menuToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('active');
+    // Tab switching
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const targetTab = button.dataset.tab;
+
+        // Update buttons
+        tabButtons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-selected', 'false');
+        });
+        button.classList.add('active');
+        button.setAttribute('aria-selected', 'true');
+
+        // Update content
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(`tab-${targetTab}`).classList.add('active');
+      });
     });
+
+    // "View all" link switches to related domains tab
+    if (viewAllRelatedLink) {
+      viewAllRelatedLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const relatedTabBtn = document.querySelector('.tab-btn[data-tab="related"]');
+        if (relatedTabBtn) {
+          relatedTabBtn.click();
+        }
+      });
+    }
 
     // Form submission
     domainForm.addEventListener('submit', async (e) => {
@@ -251,8 +339,67 @@
       }
     });
 
+    // Fetch WHOIS data via backend proxy
+    async function fetchWhoisData(domain) {
+      try {
+        const response = await fetch('https://survey.strivyr.com/api/whois', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain: domain })
+        });
+
+        if (!response.ok) {
+          throw new Error(`WHOIS fetch failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || 'WHOIS fetch failed');
+        }
+
+        return result.data;
+      } catch (error) {
+        console.error('Error fetching WHOIS data:', error);
+        return {
+          registrant: {},
+          registrar: '',
+          nameservers: [],
+          created: '',
+          emails: [],
+          organization: ''
+        };
+      }
+    }
+
+    // Fetch Certificate Transparency logs via backend proxy
+    async function fetchCertificateTransparency(domain) {
+      try {
+        const response = await fetch('https://survey.strivyr.com/api/ct-logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain: domain })
+        });
+
+        if (!response.ok) {
+          throw new Error(`CT log fetch failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || 'CT log fetch failed');
+        }
+
+        return result.data;
+      } catch (error) {
+        console.error('Error fetching CT logs:', error);
+        return { certificates: [], relatedDomains: [] };
+      }
+    }
+
     // Process API results
-    function processResults(domain, data) {
+    async function processResults(domain, data) {
       // Sanitize domain before displaying
       domainTitle.textContent = sanitizeDomain(domain);
 
@@ -261,14 +408,31 @@
       filteredData = [...tableData];
       currentPage = 1;
 
-      // Create radar chart
-      createRadarChart(data);
+      // Create BOTH radar charts
+      createRadarChart(data);        // Full-size chart (will be in tab)
+      createMiniRadarChart(data);    // Mini chart for summary
 
       // Render table
       renderTable();
 
       // Show results
       resultsSection.classList.add('visible');
+
+      // Fetch WHOIS and CT data in parallel for better performance
+      const [whoisData, ctData] = await Promise.all([
+        fetchWhoisData(domain),
+        fetchCertificateTransparency(domain)
+      ]);
+
+      // Enhance original data with WHOIS info
+      const enhancedData = {
+        ...data,
+        whois: whoisData,
+        certificates: ctData.certificates
+      };
+
+      // Display related domains with enhanced confidence scoring
+      displayRelatedDomains(domain, ctData.relatedDomains, enhancedData);
     }
 
     // Build table data from API response
@@ -327,27 +491,13 @@
         });
       };
 
-      // Process each data type
+      // Process each data type - only show CNAME, A, AAAA, MX, and NS
       if (data.dns) {
+        addRows('CNAME Records', data.dns.CNAME);
         addRows('A Records', data.dns.A);
         addRows('AAAA Records', data.dns.AAAA);
-        addRows('CNAME Records', data.dns.CNAME);
         addMxRows(data.dns.MX); // Use special handler for MX records
-        addRows('TXT Records', data.dns.TXT);
         addRows('NS Records', data.dns.NS);
-        addRows('SOA Records', data.dns.SOA);
-      }
-
-      if (data.subdomains) {
-        addRows('Subdomains', data.subdomains);
-      }
-
-      if (data.ssl) {
-        addRows('SSL Certificates', data.ssl);
-      }
-
-      if (data.whois) {
-        addRows('WHOIS', data.whois);
       }
 
       return rows;
@@ -356,16 +506,11 @@
     // Create radar chart
     function createRadarChart(data) {
       const chartData = {
+        'CNAME Records': getCount(data.dns?.CNAME),
         'A Records': getCount(data.dns?.A),
         'AAAA Records': getCount(data.dns?.AAAA),
-        'CNAME Records': getCount(data.dns?.CNAME),
         'MX Records': getCount(data.dns?.MX),
-        'TXT Records': getCount(data.dns?.TXT),
-        'NS Records': getCount(data.dns?.NS),
-        'SOA Records': getCount(data.dns?.SOA),
-        'Subdomains': getCount(data.subdomains),
-        'SSL Certificates': getCount(data.ssl),
-        'WHOIS Fields': getCount(data.whois)
+        'NS Records': getCount(data.dns?.NS)
       };
 
       const ctx = document.getElementById('radar-chart');
@@ -450,6 +595,83 @@
                 size: 12,
                 family: 'Inter, sans-serif'
               }
+            }
+          }
+        }
+      });
+    }
+
+    // Create mini radar chart (250px version for summary)
+    let miniRadarChart = null;
+
+    function createMiniRadarChart(data) {
+      const chartData = {
+        'CNAME': getCount(data.dns?.CNAME),
+        'A': getCount(data.dns?.A),
+        'AAAA': getCount(data.dns?.AAAA),
+        'MX': getCount(data.dns?.MX),
+        'NS': getCount(data.dns?.NS)
+      };
+
+      const ctx = document.getElementById('mini-radar-chart');
+
+      if (!ctx) return;
+
+      // Destroy existing chart
+      if (miniRadarChart) {
+        miniRadarChart.destroy();
+      }
+
+      miniRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: Object.keys(chartData),
+          datasets: [{
+            label: 'Record Count',
+            data: Object.values(chartData),
+            backgroundColor: 'rgba(0, 255, 249, 0.15)',
+            borderColor: 'var(--neon-cyan)',
+            borderWidth: 2,
+            pointBackgroundColor: 'var(--neon-cyan)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'var(--neon-cyan)',
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            r: {
+              beginAtZero: true,
+              ticks: {
+                color: 'var(--text-secondary)',
+                font: { size: 10 },
+                backdropColor: 'transparent'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              pointLabels: {
+                color: 'var(--text-primary)',
+                font: { size: 11, weight: '600' }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'var(--bg-elevated)',
+              titleColor: 'var(--text-primary)',
+              bodyColor: 'var(--text-secondary)',
+              borderColor: 'var(--neon-cyan)',
+              borderWidth: 1,
+              padding: 12,
+              cornerRadius: 8
             }
           }
         }
@@ -605,6 +827,263 @@
       URL.revokeObjectURL(url);
     }
 
+    // Helper function to find array overlap
+    function findArrayOverlap(arr1, arr2) {
+      if (!arr1 || !arr2 || !Array.isArray(arr1) || !Array.isArray(arr2)) return [];
+      return arr1.filter(item => arr2.includes(item));
+    }
+
+    // Helper function to check if domains share certificates
+    function domainsShareCertificate(domain1, domain2, certificates) {
+      if (!certificates || !Array.isArray(certificates)) return false;
+
+      return certificates.some(cert => {
+        const domains = cert.name_value ? cert.name_value.split('\n') : [];
+        const cleanDomains = domains.map(d => d.replace('*.', '').toLowerCase());
+        return cleanDomains.includes(domain1.toLowerCase()) && cleanDomains.includes(domain2.toLowerCase());
+      });
+    }
+
+    // Enhanced confidence scoring with WHOIS, DNS, and certificate data
+    async function calculateConfidence(originalDomain, relatedDomain, originalData, relatedData) {
+      let points = 0;
+      const signals = [];
+
+      // Category 1: WHOIS Registration Match (40% weight = up to 8 points)
+      if (originalData.whois && relatedData.whois) {
+        // Same registrant email (5 points - strongest signal)
+        if (originalData.whois.emails && relatedData.whois.emails) {
+          const sharedEmails = findArrayOverlap(originalData.whois.emails, relatedData.whois.emails);
+          if (sharedEmails.length > 0) {
+            points += 5;
+            signals.push({ type: 'whois_email', value: 'Same registrant email', points: 5 });
+          }
+        }
+
+        // Same organization (4 points)
+        if (originalData.whois.organization && relatedData.whois.organization &&
+            originalData.whois.organization === relatedData.whois.organization) {
+          points += 4;
+          signals.push({ type: 'whois_org', value: `Same organization: ${originalData.whois.organization}`, points: 4 });
+        }
+
+        // Same registrar (1 point)
+        if (originalData.whois.registrar && relatedData.whois.registrar &&
+            originalData.whois.registrar === relatedData.whois.registrar) {
+          points += 1;
+          signals.push({ type: 'registrar', value: 'Same registrar', points: 1 });
+        }
+      }
+
+      // Category 2: SSL Certificate Analysis (35% weight = up to 7 points)
+      // Found in CT logs (3 points baseline)
+      points += 3;
+      signals.push({ type: 'cert_transparency', value: 'Found in CT logs', points: 3 });
+
+      // Shared certificate (5 points - very strong signal)
+      if (originalData.certificates && domainsShareCertificate(originalDomain, relatedDomain, originalData.certificates)) {
+        points += 5;
+        signals.push({ type: 'shared_cert', value: 'Shared SSL certificate', points: 5 });
+      }
+
+      // Category 3: Infrastructure Overlap (15% weight = up to 3 points)
+      if (originalData.dns && relatedData.dns) {
+        // Shared nameservers (2 points)
+        const nsOverlap = findArrayOverlap(originalData.dns.NS, relatedData.dns.NS);
+        if (nsOverlap.length > 0) {
+          points += 2;
+          signals.push({ type: 'shared_ns', value: `${nsOverlap.length} shared nameservers`, points: 2 });
+        }
+
+        // Shared IP addresses (3 points)
+        const ipOverlap = findArrayOverlap(originalData.dns.A, relatedData.dns.A);
+        if (ipOverlap.length > 0) {
+          points += 3;
+          signals.push({ type: 'shared_ip', value: `${ipOverlap.length} shared IPs`, points: 3 });
+        }
+
+        // Shared mail servers (2 points)
+        const mxOverlap = findArrayOverlap(
+          originalData.dns.MX?.map(mx => mx.exchange || mx),
+          relatedData.dns.MX?.map(mx => mx.exchange || mx)
+        );
+        if (mxOverlap.length > 0) {
+          points += 2;
+          signals.push({ type: 'shared_mx', value: `${mxOverlap.length} shared mail servers`, points: 2 });
+        }
+      }
+
+      // Category 4: Name Similarity (10% weight = up to 2 points)
+      const similarity = calculateStringSimilarity(originalDomain, relatedDomain);
+      if (similarity > 0.7) {
+        const simPoints = Math.min(2, Math.round(similarity * 2));
+        points += simPoints;
+        signals.push({ type: 'name_similarity', value: `${Math.round(similarity * 100)}% name match`, points: simPoints });
+      }
+
+      // Same TLD bonus (1 point)
+      const origTLD = originalDomain.split('.').pop();
+      const relTLD = relatedDomain.split('.').pop();
+      if (origTLD === relTLD) {
+        points += 1;
+        signals.push({ type: 'same_tld', value: `Same TLD (.${origTLD})`, points: 1 });
+      }
+
+      // Convert to 1-5 stars (adjusted thresholds for enhanced scoring)
+      let stars;
+      if (points >= 18) stars = 5;        // Extremely high confidence
+      else if (points >= 14) stars = 4;   // High confidence
+      else if (points >= 10) stars = 3;   // Medium confidence
+      else if (points >= 6) stars = 2;    // Low confidence
+      else stars = 1;                     // Very low confidence
+
+      return { score: points, stars, signals };
+    }
+
+    // String similarity calculation (Levenshtein distance)
+    function calculateStringSimilarity(str1, str2) {
+      const track = Array(str2.length + 1).fill(null).map(() =>
+        Array(str1.length + 1).fill(null));
+
+      for (let i = 0; i <= str1.length; i++) track[0][i] = i;
+      for (let j = 0; j <= str2.length; j++) track[j][0] = j;
+
+      for (let j = 1; j <= str2.length; j++) {
+        for (let i = 1; i <= str1.length; i++) {
+          const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+          track[j][i] = Math.min(
+            track[j][i - 1] + 1,
+            track[j - 1][i] + 1,
+            track[j - 1][i - 1] + indicator
+          );
+        }
+      }
+
+      const distance = track[str2.length][str1.length];
+      return 1 - (distance / Math.max(str1.length, str2.length));
+    }
+
+    // Display related domains with confidence scores
+    async function displayRelatedDomains(originalDomain, relatedDomains, originalData) {
+      const container = document.getElementById('related-domains-content');
+
+      if (!relatedDomains || relatedDomains.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-secondary);">No related domains found.</p>';
+        return;
+      }
+
+      // Show loading state
+      container.innerHTML = '<p style="color: var(--text-secondary);">Analyzing related domains...</p>';
+
+      // Fetch DNS and WHOIS data for each related domain in parallel
+      const relatedDataPromises = relatedDomains.map(async (domain) => {
+        try {
+          // Fetch DNS data from your existing API
+          const dnsResponse = await fetch('https://survey.strivyr.com/api/lookup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain: domain })
+          });
+          const dnsData = await dnsResponse.json();
+
+          // Fetch WHOIS data
+          const whoisData = await fetchWhoisData(domain);
+
+          return {
+            domain: domain,
+            dns: dnsData.dns || {},
+            whois: whoisData
+          };
+        } catch (error) {
+          console.error(`Error fetching data for ${domain}:`, error);
+          return {
+            domain: domain,
+            dns: {},
+            whois: {}
+          };
+        }
+      });
+
+      const relatedDataResults = await Promise.all(relatedDataPromises);
+
+      // Calculate confidence for each domain with full data
+      const confidencePromises = relatedDataResults.map(async (relatedData) => {
+        const confidence = await calculateConfidence(
+          originalDomain,
+          relatedData.domain,
+          originalData,
+          relatedData
+        );
+        return {
+          domain: relatedData.domain,
+          confidence: confidence.stars,
+          score: confidence.score,
+          signals: confidence.signals
+        };
+      });
+
+      const domainsWithConfidence = await Promise.all(confidencePromises);
+
+      // Sort by confidence score (highest first)
+      domainsWithConfidence.sort((a, b) => b.score - a.score);
+
+      // Render
+      const html = domainsWithConfidence.map(item => `
+        <div class="related-domain-card" style="background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span style="color: var(--text-primary); font-size: 1.125rem; font-weight: 600;">${sanitizeHTML(item.domain)}</span>
+            <span style="background: var(--accent-primary); color: var(--bg-primary); padding: 0.5rem 1rem; border-radius: 8px; font-size: 1.25rem; font-weight: 700;">+${item.confidence}</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
+            ${item.signals.map(signal => `
+              <span style="background: var(--bg-secondary); border: 1px solid var(--border-default); color: var(--text-secondary); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500;">
+                ${sanitizeHTML(signal.value)} (+${signal.points})
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = html;
+
+      // Also update the summary preview and stats
+      displayRelatedPreview(domainsWithConfidence);
+      updateQuickStats(tableData, domainsWithConfidence);
+    }
+
+    // Display top 3 related domains in summary preview
+    function displayRelatedPreview(domainsWithConfidence) {
+      const previewContainer = document.getElementById('related-preview');
+
+      if (!domainsWithConfidence || domainsWithConfidence.length === 0) {
+        previewContainer.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.875rem;">No related domains found</p>';
+        return;
+      }
+
+      // Get top 3
+      const top3 = domainsWithConfidence.slice(0, 3);
+
+      const html = top3.map(item => `
+        <div class="related-preview-card">
+          <span class="preview-domain">${sanitizeHTML(item.domain)}</span>
+          <span class="preview-confidence">+${item.confidence}</span>
+        </div>
+      `).join('');
+
+      previewContainer.innerHTML = html;
+    }
+
+    // Update quick stats in summary section
+    function updateQuickStats(tableData, relatedDomains) {
+      const totalRecords = tableData.length;
+      const relatedCount = relatedDomains.length;
+      const highConfidence = relatedDomains.filter(d => d.confidence >= 4).length;
+
+      document.getElementById('stat-total-records').textContent = totalRecords;
+      document.getElementById('stat-related-count').textContent = relatedCount;
+      document.getElementById('stat-high-confidence').textContent = highConfidence;
+    }
+
     // Show error
     function showError(message) {
       errorMessage.textContent = message;
@@ -614,5 +1093,6 @@
     // Make changePage global for onclick handlers
     window.changePage = changePage;
   </script>
+  <script src="js/mobile-menu.js"></script>
 </body>
 </html>
