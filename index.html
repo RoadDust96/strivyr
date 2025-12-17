@@ -213,9 +213,56 @@
       return sanitized.toLowerCase();
     };
 
+    // Validate if a string is a valid domain format
+    const isValidDomain = (domain) => {
+      if (!domain || typeof domain !== 'string') return false;
+
+      // Reject domains with invalid characters (commas, spaces, quotes, etc.)
+      if (/[,\s'"(){}[\]<>|\\]/.test(domain)) return false;
+
+      // Must contain at least one dot
+      if (!domain.includes('.')) return false;
+
+      // Must match basic domain format (alphanumeric, dots, hyphens only)
+      if (!/^[a-z0-9.-]+$/i.test(domain)) return false;
+
+      // Can't start or end with dot or hyphen
+      if (/^[.-]|[.-]$/.test(domain)) return false;
+
+      // Reject consecutive hyphens (e.g., "www--reddit.com")
+      if (/--/.test(domain)) return false;
+
+      // Reject consecutive dots (e.g., "example..com")
+      if (/\.\./.test(domain)) return false;
+
+      return true;
+    };
+
+    // Infrastructure provider blacklist - these are hosting/CDN services, not related domains
+    const infrastructureProviders = new Set([
+      // CDN & Hosting
+      'cloudflare.com', 'cloudflaressl.com', 'cloudflare.net', 'cloudflare-dns.com',
+      'akamai.com', 'akamai.net', 'akamaiedge.net', 'akamaihd.net',
+      'fastly.com', 'fastly.net', 'fastlylb.net',
+      'cdn77.com', 'cdn77.net',
+      'cloudfront.net',
+      // Cloud Providers
+      'amazonaws.com', 'awsdns.com', 'awsdns.net', 'awsdns.org',
+      'googleusercontent.com', 'googleapis.com', 'gstatic.com',
+      'azurewebsites.net', 'azure.com', 'windows.net',
+      'digitaloceanspaces.com', 'digitalocean.com',
+      // SSL/Security
+      'letsencrypt.org', 'digicert.com', 'sectigo.com', 'godaddy.com', 'comodo.com',
+      // Analytics/Ads
+      'google-analytics.com', 'googletagmanager.com', 'doubleclick.net', 'googlesyndication.com'
+    ]);
+
     // Extract apex/root domain from any domain (e.g., "docs.google.com" -> "google.com")
     const extractApexDomain = (domain) => {
       if (!domain) return '';
+
+      // First validate the domain format
+      if (!isValidDomain(domain)) return '';
 
       // Remove wildcards and clean up
       let cleaned = domain.replace(/^\*\./, '').toLowerCase().trim();
@@ -268,6 +315,11 @@
             return ''; // Invalid
           }
 
+          // Filter out infrastructure providers (CDN, hosting, cloud services)
+          if (infrastructureProviders.has(apex)) {
+            return ''; // Blacklisted
+          }
+
           return apex;
         }
       }
@@ -279,6 +331,11 @@
       const secondLevel = parts[parts.length - 2];
       if (!secondLevel || secondLevel.length < 2 || /^\d+$/.test(secondLevel)) {
         return ''; // Invalid
+      }
+
+      // Filter out infrastructure providers (CDN, hosting, cloud services)
+      if (infrastructureProviders.has(apex)) {
+        return ''; // Blacklisted
       }
 
       return apex;
@@ -641,7 +698,8 @@
             r: {
               beginAtZero: true,
               ticks: {
-                color: 'var(--text-secondary)',
+                stepSize: 1,  // Only show whole numbers (no 0.5, 1.5, etc.)
+                color: '#cbd5e1',  // Light gray for numbers
                 font: { size: 10 },
                 backdropColor: 'transparent'
               },
@@ -649,7 +707,7 @@
                 color: 'rgba(255, 255, 255, 0.1)'
               },
               pointLabels: {
-                color: 'var(--text-primary)',
+                color: '#ffffff',  // White for labels (CNAME, A, MX, etc.)
                 font: { size: 11, weight: '600' }
               }
             }
@@ -659,10 +717,10 @@
               display: false
             },
             tooltip: {
-              backgroundColor: 'var(--bg-elevated)',
-              titleColor: 'var(--text-primary)',
-              bodyColor: 'var(--text-secondary)',
-              borderColor: 'var(--neon-cyan)',
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#ffffff',
+              bodyColor: '#cbd5e1',
+              borderColor: '#00fff9',
               borderWidth: 1,
               padding: 12,
               cornerRadius: 8
@@ -869,10 +927,8 @@
         }
       }
 
-      // Category 2: SSL Certificate Analysis (35% weight = up to 7 points)
-      // Found in CT logs (3 points baseline)
-      points += 3;
-      signals.push({ type: 'cert_transparency', value: 'Found in CT logs', points: 3 });
+      // Category 2: SSL Certificate Analysis (25% weight = up to 5 points)
+      // Note: Just appearing in CT logs means nothing - we only score actual certificate sharing
 
       // Shared certificate (5 points - very strong signal)
       if (originalData.certificates && domainsShareCertificate(originalDomain, relatedDomain, originalData.certificates)) {
@@ -918,23 +974,13 @@
         signals.push({ type: 'name_similarity', value: `${Math.round(similarity * 100)}% name match`, points: simPoints });
       }
 
-      // Same TLD bonus (1 point)
-      const origTLD = originalDomain.split('.').pop();
-      const relTLD = relatedDomain.split('.').pop();
-      if (origTLD === relTLD) {
-        points += 1;
-        signals.push({ type: 'same_tld', value: `Same TLD (.${origTLD})`, points: 1 });
-      }
+      // Note: Same TLD removed - too weak a signal (most domains use .com)
 
-      // Convert to 1-5 stars (adjusted thresholds for enhanced scoring)
-      let stars;
-      if (points >= 18) stars = 5;        // Extremely high confidence
-      else if (points >= 14) stars = 4;   // High confidence
-      else if (points >= 10) stars = 3;   // Medium confidence
-      else if (points >= 6) stars = 2;    // Low confidence
-      else stars = 1;                     // Very low confidence
+      // Confidence is the direct sum of all signal points (no scaling)
+      // Example: "4 shared IPs (+3)" + "2 shared mail servers (+2)" = +5 confidence
+      const confidence = points;
 
-      return { score: points, stars, signals };
+      return { score: points, confidence, signals };
     }
 
     // String similarity calculation (Levenshtein distance)
@@ -1067,7 +1113,7 @@
         );
         return {
           domain: relatedData.domain,
-          confidence: confidence.stars,
+          confidence: confidence.confidence,
           score: confidence.score,
           signals: confidence.signals
         };
@@ -1075,15 +1121,26 @@
 
       const domainsWithConfidence = await Promise.all(confidencePromises);
 
+      // Filter out domains with no signals or 0 confidence
+      const validDomains = domainsWithConfidence.filter(d => d.confidence > 0 && d.signals.length > 0);
+
       // Sort by confidence score (highest first)
-      domainsWithConfidence.sort((a, b) => b.score - a.score);
+      validDomains.sort((a, b) => b.score - a.score);
+
+      // Check if we have any valid related domains
+      if (validDomains.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-secondary);">No meaningfully related domains found.</p>';
+        displayRelatedPreview([]);
+        updateQuickStats(tableData, []);
+        return;
+      }
 
       // Render
-      const html = domainsWithConfidence.map(item => `
+      const html = validDomains.map(item => `
         <div class="related-domain-card" style="background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
             <span style="color: var(--text-primary); font-size: 1.125rem; font-weight: 600;">${sanitizeHTML(item.domain)}</span>
-            <span style="background: var(--accent-primary); color: var(--bg-primary); padding: 0.5rem 1rem; border-radius: 8px; font-size: 1.25rem; font-weight: 700;">+${item.confidence}</span>
+            <span style="background: var(--accent-primary); color: #ffffff; padding: 0.5rem 1rem; border-radius: 8px; font-size: 1.25rem; font-weight: 700;">+${item.confidence}</span>
           </div>
           <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
             ${item.signals.map(signal => `
@@ -1098,8 +1155,8 @@
       container.innerHTML = html;
 
       // Also update the summary preview and stats
-      displayRelatedPreview(domainsWithConfidence);
-      updateQuickStats(tableData, domainsWithConfidence);
+      displayRelatedPreview(validDomains);
+      updateQuickStats(tableData, validDomains);
     }
 
     // Display top 3 related domains in summary preview
@@ -1128,7 +1185,8 @@
     function updateQuickStats(tableData, relatedDomains) {
       const totalRecords = tableData.length;
       const relatedCount = relatedDomains.length;
-      const highConfidence = relatedDomains.filter(d => d.confidence >= 4).length;
+      // High confidence = 5+ points (multiple meaningful signals or one very strong signal)
+      const highConfidence = relatedDomains.filter(d => d.confidence >= 5).length;
 
       document.getElementById('stat-total-records').textContent = totalRecords;
       document.getElementById('stat-related-count').textContent = relatedCount;

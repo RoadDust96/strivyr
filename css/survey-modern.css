@@ -533,11 +533,12 @@
 
 .preview-confidence {
   background: var(--neon-cyan);
-  color: var(--black);
+  color: #ffffff;
   padding: 0.25rem 0.75rem;
   border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Quick Stats */
