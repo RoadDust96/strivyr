@@ -192,6 +192,7 @@
     const itemsPerPage = 20;
     let sortColumn = null;
     let sortDirection = 'asc';
+    let currentScanId = 0; // Track current scan to prevent race conditions
 
     // Security: Input sanitization utility
     const sanitizeHTML = (str) => {
@@ -393,6 +394,78 @@
       });
     }
 
+    // Clear all state for a fresh scan
+    function clearAllState() {
+      // Clear global state variables
+      apiResponse = null;
+      tableData = [];
+      filteredData = [];
+      currentPage = 1;
+      sortColumn = null;
+      sortDirection = 'asc';
+
+      // Clear domain title
+      domainTitle.textContent = '';
+
+      // Clear table
+      tableBody.innerHTML = '';
+      paginationInfo.textContent = '';
+      pagination.innerHTML = '';
+
+      // Clear search box
+      searchBox.value = '';
+
+      // Reset quick stats to default
+      document.getElementById('stat-total-records').textContent = '--';
+      document.getElementById('stat-related-count').textContent = '--';
+      document.getElementById('stat-high-confidence').textContent = '--';
+
+      // Clear related domains preview
+      const relatedPreview = document.getElementById('related-preview');
+      relatedPreview.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner spinner-small"></div>
+          <span class="spinner-text">Analyzing...</span>
+        </div>
+      `;
+
+      // Clear full related domains content
+      const relatedDomainsContent = document.getElementById('related-domains-content');
+      relatedDomainsContent.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner"></div>
+          <span class="spinner-text">Searching for related domains...</span>
+        </div>
+      `;
+
+      // Destroy and clear radar chart
+      if (miniRadarChart) {
+        miniRadarChart.destroy();
+        miniRadarChart = null;
+      }
+
+      // Reset to DNS tab
+      tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
+      tabContents.forEach(content => {
+        content.classList.remove('active');
+      });
+      const dnsTab = document.querySelector('.tab-btn[data-tab="dns"]');
+      const dnsContent = document.getElementById('tab-dns');
+      if (dnsTab && dnsContent) {
+        dnsTab.classList.add('active');
+        dnsTab.setAttribute('aria-selected', 'true');
+        dnsContent.classList.add('active');
+      }
+
+      // Remove sorting classes
+      document.querySelectorAll('.sortable').forEach(header => {
+        header.classList.remove('sorted-asc', 'sorted-desc');
+      });
+    }
+
     // Form submission
     domainForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -421,11 +494,41 @@
         return;
       }
 
-      // Reset state
+      // Clear visible stats and related domains IMMEDIATELY (before anything else)
+      document.getElementById('stat-total-records').textContent = '--';
+      document.getElementById('stat-related-count').textContent = '--';
+      document.getElementById('stat-high-confidence').textContent = '--';
+
+      // Clear related domains preview immediately
+      const relatedPreview = document.getElementById('related-preview');
+      relatedPreview.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner spinner-small"></div>
+          <span class="spinner-text">Analyzing...</span>
+        </div>
+      `;
+
+      // Clear full related domains content immediately
+      const relatedDomainsContent = document.getElementById('related-domains-content');
+      relatedDomainsContent.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner"></div>
+          <span class="spinner-text">Searching for related domains...</span>
+        </div>
+      `;
+
+      // Hide results section and show loading
       errorMessage.style.display = 'none';
       resultsSection.classList.remove('visible');
       loadingState.style.display = 'block';
       submitBtn.disabled = true;
+
+      // Clear remaining state after hiding results
+      clearAllState();
+
+      // Increment scan ID to track this specific scan
+      currentScanId++;
+      const thisScanId = currentScanId;
 
       try {
         console.log('Sending request to API for domain:', domain);
@@ -440,6 +543,12 @@
 
         console.log('Response status:', response.status);
 
+        // Check if this scan is still current
+        if (thisScanId !== currentScanId) {
+          console.log('Scan cancelled - newer scan in progress');
+          return;
+        }
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error('API error response:', errorText);
@@ -448,7 +557,14 @@
 
         apiResponse = await response.json();
         console.log('API response:', apiResponse);
-        processResults(domain, apiResponse);
+
+        // Check again before processing results
+        if (thisScanId !== currentScanId) {
+          console.log('Scan cancelled - newer scan in progress');
+          return;
+        }
+
+        processResults(domain, apiResponse, thisScanId);
 
       } catch (error) {
         console.error('Error details:', error);
@@ -471,17 +587,36 @@
       }
     });
 
-    // Fetch WHOIS data via backend proxy
+    // Fetch WHOIS data via RDAP (modern WHOIS replacement)
     async function fetchWhoisData(domain) {
       try {
-        const response = await fetch('https://survey.strivyr.com/api/whois', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domain: domain })
+        // Try RDAP bootstrap service first (supports all TLDs)
+        let response = await fetch(`https://rdap.org/domain/${domain}`, {
+          headers: { 'Accept': 'application/json' }
         });
 
+        // If RDAP bootstrap fails, try TLD-specific servers
         if (!response.ok) {
-          console.warn(`WHOIS unavailable for ${domain} (${response.status}) - continuing without WHOIS data`);
+          const tld = domain.split('.').pop();
+          const rdapServers = {
+            'com': `https://rdap.verisign.com/com/v1/domain/${domain}`,
+            'net': `https://rdap.verisign.com/net/v1/domain/${domain}`,
+            'org': `https://rdap.publicinterestregistry.org/rdap/domain/${domain}`,
+            'io': `https://rdap.nic.io/domain/${domain}`,
+            'ai': `https://rdap.nic.ai/domain/${domain}`,
+            'dev': `https://rdap.nic.google/domain/${domain}`,
+            'app': `https://rdap.nic.google/domain/${domain}`,
+          };
+
+          if (rdapServers[tld]) {
+            response = await fetch(rdapServers[tld], {
+              headers: { 'Accept': 'application/json' }
+            });
+          }
+        }
+
+        if (!response.ok) {
+          console.warn(`RDAP unavailable for ${domain} (${response.status}) - continuing without WHOIS data`);
           return {
             registrant: {},
             registrar: '',
@@ -492,23 +627,63 @@
           };
         }
 
-        const result = await response.json();
+        const rdapData = await response.json();
 
-        if (!result.success) {
-          console.warn(`WHOIS unavailable for ${domain} - ${result.error || 'service unavailable'} - continuing without WHOIS data`);
-          return {
-            registrant: {},
-            registrar: '',
-            nameservers: [],
-            created: '',
-            emails: [],
-            organization: ''
-          };
+        // Parse RDAP response
+        const entities = rdapData.entities || [];
+        const registrantEntity = entities.find(e => e.roles?.includes('registrant'));
+        const registrarEntity = entities.find(e => e.roles?.includes('registrar'));
+
+        // Extract nameservers
+        const nameservers = (rdapData.nameservers || []).map(ns => ns.ldhName);
+
+        // Extract emails
+        const emails = [];
+        entities.forEach(entity => {
+          const vcard = entity.vcardArray?.[1] || [];
+          vcard.forEach(field => {
+            if (field[0] === 'email') {
+              emails.push(field[3]);
+            }
+          });
+        });
+
+        // Extract organization
+        let organization = '';
+        if (registrantEntity) {
+          const vcard = registrantEntity.vcardArray?.[1] || [];
+          const orgField = vcard.find(f => f[0] === 'org');
+          if (orgField) {
+            organization = orgField[3];
+          }
         }
 
-        return result.data;
+        // Extract registrar
+        let registrar = '';
+        if (registrarEntity) {
+          const vcard = registrarEntity.vcardArray?.[1] || [];
+          const fnField = vcard.find(f => f[0] === 'fn');
+          if (fnField) {
+            registrar = fnField[3];
+          }
+        }
+
+        // Extract creation date
+        const events = rdapData.events || [];
+        const registrationEvent = events.find(e => e.eventAction === 'registration');
+        const created = registrationEvent?.eventDate || '';
+
+        return {
+          registrant: registrantEntity || {},
+          registrar: registrar,
+          nameservers: nameservers,
+          created: created,
+          emails: emails,
+          organization: organization
+        };
+
       } catch (error) {
-        console.warn(`WHOIS unavailable for ${domain} - continuing without WHOIS data`);
+        console.warn(`RDAP error for ${domain}:`, error);
         return {
           registrant: {},
           registrar: '',
@@ -549,7 +724,13 @@
     }
 
     // Process API results
-    async function processResults(domain, data) {
+    async function processResults(domain, data, scanId) {
+      // Check if this scan is still current
+      if (scanId !== currentScanId) {
+        console.log('processResults cancelled - newer scan in progress');
+        return;
+      }
+
       // Sanitize domain before displaying
       domainTitle.textContent = sanitizeDomain(domain);
 
@@ -573,6 +754,12 @@
         fetchCertificateTransparency(domain)
       ]);
 
+      // Check again after async operations
+      if (scanId !== currentScanId) {
+        console.log('processResults cancelled after fetch - newer scan in progress');
+        return;
+      }
+
       // Enhance original data with WHOIS info
       const enhancedData = {
         ...data,
@@ -581,7 +768,7 @@
       };
 
       // Display related domains with enhanced confidence scoring
-      displayRelatedDomains(domain, ctData.relatedDomains, enhancedData);
+      displayRelatedDomains(domain, ctData.relatedDomains, enhancedData, scanId);
     }
 
     // Build table data from API response
@@ -1007,10 +1194,19 @@
     }
 
     // Display related domains with confidence scores
-    async function displayRelatedDomains(originalDomain, relatedDomains, originalData) {
+    async function displayRelatedDomains(originalDomain, relatedDomains, originalData, scanId) {
       const container = document.getElementById('related-domains-content');
 
+      // Check if this scan is still current
+      if (scanId !== currentScanId) {
+        console.log('displayRelatedDomains cancelled - newer scan in progress');
+        return;
+      }
+
       if (!relatedDomains || relatedDomains.length === 0) {
+        // Check again before updating UI
+        if (scanId !== currentScanId) return;
+
         container.innerHTML = '<p style="color: var(--text-secondary);">No related domains found.</p>';
         // Update preview and stats with empty data
         displayRelatedPreview([]);
@@ -1035,7 +1231,13 @@
       // Remove duplicates
       const uniqueApexDomains = [...new Set(apexDomains)];
 
+      // Check if scan is still current
+      if (scanId !== currentScanId) return;
+
       if (uniqueApexDomains.length === 0) {
+        // Check again before updating UI
+        if (scanId !== currentScanId) return;
+
         container.innerHTML = '<p style="color: var(--text-secondary);">No related apex domains found. Only subdomains were discovered.</p>';
         displayRelatedPreview([]);
         updateQuickStats(tableData, []);
@@ -1044,6 +1246,9 @@
 
       // Use all unique apex domains (sequential processing with delays prevents rate limiting)
       const limitedDomains = uniqueApexDomains;
+
+      // Check if scan is still current before showing loading
+      if (scanId !== currentScanId) return;
 
       // Show loading state with spinner
       container.innerHTML = `
@@ -1059,6 +1264,12 @@
       // Fetch data sequentially with delays to avoid rate limiting
       const relatedDataResults = [];
       for (let i = 0; i < limitedDomains.length; i++) {
+        // Check if scan is still current before each iteration
+        if (scanId !== currentScanId) {
+          console.log('displayRelatedDomains cancelled during fetch loop - newer scan in progress');
+          return;
+        }
+
         const domain = limitedDomains[i];
 
         try {
@@ -1070,11 +1281,20 @@
           });
           const dnsData = await dnsResponse.json();
 
+          // Check after async operation
+          if (scanId !== currentScanId) return;
+
           // Small delay between requests to avoid rate limiting
           await delay(300);
 
+          // Check after delay
+          if (scanId !== currentScanId) return;
+
           // Fetch WHOIS data
           const whoisData = await fetchWhoisData(domain);
+
+          // Check after async operation
+          if (scanId !== currentScanId) return;
 
           relatedDataResults.push({
             domain: domain,
@@ -1093,6 +1313,9 @@
             whois: {}
           });
         }
+
+        // Check before updating UI
+        if (scanId !== currentScanId) return;
 
         // Update loading message with progress and spinner
         container.innerHTML = `
@@ -1121,6 +1344,12 @@
 
       const domainsWithConfidence = await Promise.all(confidencePromises);
 
+      // Check if scan is still current after confidence calculation
+      if (scanId !== currentScanId) {
+        console.log('displayRelatedDomains cancelled after confidence calculation - newer scan in progress');
+        return;
+      }
+
       // Filter out domains with no signals or 0 confidence
       const validDomains = domainsWithConfidence.filter(d => d.confidence > 0 && d.signals.length > 0);
 
@@ -1129,9 +1358,18 @@
 
       // Check if we have any valid related domains
       if (validDomains.length === 0) {
+        // Check again before updating UI
+        if (scanId !== currentScanId) return;
+
         container.innerHTML = '<p style="color: var(--text-secondary);">No meaningfully related domains found.</p>';
         displayRelatedPreview([]);
         updateQuickStats(tableData, []);
+        return;
+      }
+
+      // Final check before rendering results
+      if (scanId !== currentScanId) {
+        console.log('displayRelatedDomains cancelled before rendering - newer scan in progress');
         return;
       }
 
