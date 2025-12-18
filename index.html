@@ -688,7 +688,7 @@
         };
 
         // Debug logging - shows parsed WHOIS data
-        console.log(`✅ RDAP success for ${domain}:`, {
+        console.log(`RDAP success for ${domain}:`, {
           organization: organization || '(none)',
           registrar: registrar || '(none)',
           emails: emails.length ? emails : '(none)',
@@ -733,7 +733,7 @@
         }
 
         // Debug logging - shows CT log results
-        console.log(`✅ Certificate Transparency success for ${domain}:`, {
+        console.log(`Certificate Transparency success for ${domain}:`, {
           relatedDomains: result.data.relatedDomains?.length || 0,
           certificates: result.data.certificates?.length || 0,
           topRelated: result.data.relatedDomains?.slice(0, 5) || []
@@ -744,6 +744,55 @@
         console.warn(`Certificate Transparency logs unavailable for ${domain} - continuing without CT data`);
         return { certificates: [], relatedDomains: [] };
       }
+    }
+
+    // Perform reverse IP lookup to find domains on same IPs
+    async function reverseIPLookup(ipAddresses) {
+      const allDomains = [];
+
+      for (const ip of ipAddresses) {
+        try {
+          // Use HackerTarget free API (500 requests/day, no API key needed)
+          const response = await fetch(`https://api.hackertarget.com/reverseiplookup/?q=${ip}`);
+
+          if (!response.ok) {
+            console.warn(`Reverse IP lookup failed for ${ip} (${response.status})`);
+            continue;
+          }
+
+          const text = await response.text();
+
+          // Check for error responses
+          if (text.includes('error') || text.includes('invalid')) {
+            console.warn(`Reverse IP lookup returned error for ${ip}: ${text}`);
+            continue;
+          }
+
+          // Parse results (one domain per line)
+          const domains = text
+            .split('\n')
+            .map(d => d.trim())
+            .filter(d => d && d.includes('.') && !d.startsWith('error'));
+
+          if (domains.length > 0) {
+            console.log(`Reverse IP lookup for ${ip}: found ${domains.length} domains`);
+            allDomains.push(...domains);
+          }
+
+          // Small delay to respect rate limits
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+        } catch (error) {
+          console.warn(`Reverse IP lookup error for ${ip}:`, error);
+        }
+      }
+
+      // Remove duplicates
+      const uniqueDomains = [...new Set(allDomains)];
+
+      console.log(`Total reverse IP results: ${uniqueDomains.length} unique domains from ${ipAddresses.length} IPs`);
+
+      return uniqueDomains;
     }
 
     // Process API results
@@ -783,6 +832,39 @@
         return;
       }
 
+      // Perform reverse IP lookup on A records
+      let reverseIPDomains = [];
+      const reverseIPDiscoveredDomains = new Set(); // Track which domains were found via reverse IP
+
+      if (data.dns?.A && Array.isArray(data.dns.A) && data.dns.A.length > 0) {
+        console.log(`Starting reverse IP lookup for ${data.dns.A.length} IP addresses...`);
+        reverseIPDomains = await reverseIPLookup(data.dns.A);
+
+        // Mark all reverse IP domains
+        reverseIPDomains.forEach(domain => reverseIPDiscoveredDomains.add(domain.toLowerCase()));
+
+        // Check again after reverse IP lookup
+        if (scanId !== currentScanId) {
+          console.log('processResults cancelled after reverse IP - newer scan in progress');
+          return;
+        }
+      }
+
+      // Merge CT log domains with reverse IP domains
+      const allRelatedDomains = [
+        ...(ctData.relatedDomains || []),
+        ...reverseIPDomains
+      ];
+
+      // Remove duplicates
+      const uniqueRelatedDomains = [...new Set(allRelatedDomains)];
+
+      console.log(`Combined discovery results:`, {
+        ctLogDomains: ctData.relatedDomains?.length || 0,
+        reverseIPDomains: reverseIPDomains.length,
+        totalUnique: uniqueRelatedDomains.length
+      });
+
       // Enhance original data with WHOIS info
       const enhancedData = {
         ...data,
@@ -791,7 +873,7 @@
       };
 
       // Display related domains with enhanced confidence scoring
-      displayRelatedDomains(domain, ctData.relatedDomains, enhancedData, scanId);
+      displayRelatedDomains(domain, uniqueRelatedDomains, enhancedData, scanId, reverseIPDiscoveredDomains);
     }
 
     // Build table data from API response
@@ -1107,7 +1189,7 @@
     }
 
     // Enhanced confidence scoring with WHOIS, DNS, and certificate data
-    async function calculateConfidence(originalDomain, relatedDomain, originalData, relatedData) {
+    async function calculateConfidence(originalDomain, relatedDomain, originalData, relatedData, reverseIPDiscoveredDomains = new Set()) {
       let points = 0;
       const signals = [];
 
@@ -1156,10 +1238,16 @@
         }
 
         // Shared IP addresses (3 points)
+        // This catches both exact IP matches AND domains found via reverse IP lookup
         const ipOverlap = findArrayOverlap(originalData.dns.A, relatedData.dns.A);
         if (ipOverlap.length > 0) {
           points += 3;
           signals.push({ type: 'shared_ip', value: `${ipOverlap.length} shared IPs`, points: 3 });
+        } else if (reverseIPDiscoveredDomains.has(relatedDomain.toLowerCase())) {
+          // Domain was discovered via reverse IP but IPs don't currently match
+          // This happens when domains have migrated IPs, use CDNs, or reverse IP data is stale
+          points += 2;
+          signals.push({ type: 'reverse_ip_historical', value: 'Historical shared IP (reverse IP discovery)', points: 2 });
         }
 
         // Shared mail servers (2 points)
@@ -1217,7 +1305,7 @@
     }
 
     // Display related domains with confidence scores
-    async function displayRelatedDomains(originalDomain, relatedDomains, originalData, scanId) {
+    async function displayRelatedDomains(originalDomain, relatedDomains, originalData, scanId, reverseIPDiscoveredDomains = new Set()) {
       const container = document.getElementById('related-domains-content');
 
       // Check if this scan is still current
@@ -1355,7 +1443,8 @@
           originalDomain,
           relatedData.domain,
           originalData,
-          relatedData
+          relatedData,
+          reverseIPDiscoveredDomains
         );
         return {
           domain: relatedData.domain,
@@ -1374,7 +1463,7 @@
       }
 
       // Debug logging - show confidence scores
-      console.log(`🎯 Confidence scoring complete for ${originalDomain}:`, {
+      console.log(`Confidence scoring complete for ${originalDomain}:`, {
         totalAnalyzed: domainsWithConfidence.length,
         breakdown: domainsWithConfidence.map(d => ({
           domain: d.domain,

@@ -29,23 +29,23 @@
     
     <div id="test-results">
         <div class="test-result pass">
-            <h3>✅ CSP Meta Tag</h3>
+            <h3>CSP Meta Tag</h3>
             <p>CSP policy should be dynamically inserted by csp-nonce.js</p>
             <div id="csp-policy"></div>
         </div>
         
         <div class="test-result pass">
-            <h3>✅ No Inline Styles</h3>
+            <h3>No Inline Styles</h3>
             <p>All styling is handled via external CSS and CSS classes</p>
         </div>
         
         <div class="test-result pass">
-            <h3>✅ No Inline Scripts</h3>
+            <h3>No Inline Scripts</h3>
             <p>All JavaScript is in external files with proper nonce handling</p>
         </div>
         
         <div class="test-result pass">
-            <h3>✅ CDN Resources with SRI</h3>
+            <h3>CDN Resources with SRI</h3>
             <p>External CDN resources include integrity hashes and crossorigin attributes</p>
         </div>
     </div>
@@ -59,7 +59,7 @@
                     cspMeta.getAttribute('content');
             } else {
                 document.getElementById('csp-policy').innerHTML = 
-                    '<span style="color: #f44336;">❌ CSP meta tag not found</span>';
+                    '<span style="color: #f44336;">CSP meta tag not found</span>';
             }
         });
     </script>

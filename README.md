@@ -7,7 +7,7 @@ A comprehensive domain reconnaissance and relationship detection tool that analy
 
 ---
 
-## 🎯 Features
+## Features
 
 ### DNS Record Analysis
 - **Comprehensive DNS Lookup**: A, AAAA, CNAME, MX, NS, TXT records
@@ -32,7 +32,7 @@ A comprehensive domain reconnaissance and relationship detection tool that analy
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Modern web browser (Chrome, Firefox, Safari, Edge)
@@ -72,7 +72,7 @@ See [BACKEND_FILTERING_FIX.md](BACKEND_FILTERING_FIX.md) for complete endpoint s
 
 ---
 
-## 📖 How It Works
+## How It Works
 
 ### 1. DNS Lookup
 User enters a domain → Backend fetches DNS records → Display results in table and chart
@@ -126,7 +126,7 @@ Total confidence: 3 + 2 = +5
 
 ---
 
-## 🎨 UI Components
+## UI Components
 
 ### Summary Section (Always Visible)
 - **Mini Radar Chart**: 250px DNS overview
@@ -145,7 +145,7 @@ Total confidence: 3 + 2 = +5
 
 ---
 
-## 🔧 Technical Stack
+## Technical Stack
 
 ### Frontend
 - **HTML5**: Semantic markup
@@ -165,7 +165,7 @@ Total confidence: 3 + 2 = +5
 
 ---
 
-## 📊 Performance
+## Performance
 
 ### Optimizations
 - Sequential API calls with 300ms delays (prevents rate limiting)
@@ -176,14 +176,14 @@ Total confidence: 3 + 2 = +5
 ### Expected Performance
 | Domains Analyzed | Estimated Time | User Experience |
 |-----------------|----------------|-----------------|
-| 5 domains | 3-5 seconds | ✅ Fast |
-| 10 domains | 6-10 seconds | ✅ Good |
-| 20 domains | 12-20 seconds | ⚠️ Medium |
-| 50 domains | 30-60 seconds | ⚠️ Slow but shows progress |
+| 5 domains | 3-5 seconds | Fast |
+| 10 domains | 6-10 seconds | Good |
+| 20 domains | 12-20 seconds | Medium |
+| 50 domains | 30-60 seconds | Slow but shows progress |
 
 ---
 
-## 🛡️ Security Features
+## Security Features
 
 ### Input Validation
 - Sanitizes all user input
@@ -203,7 +203,7 @@ Backend proxy endpoints prevent direct API calls to third-party services.
 
 ---
 
-## 📁 File Structure
+## File Structure
 
 ```
 strivyr/
@@ -221,7 +221,7 @@ strivyr/
 
 ---
 
-## 🚨 Known Limitations
+## Known Limitations
 
 ### WHOIS Service
 - **Who-Dat API blocks cloud hosting providers** (AWS, Google Cloud, etc.)
@@ -240,7 +240,7 @@ strivyr/
 
 ---
 
-## 🔍 Use Cases
+## Use Cases
 
 ### 1. Brand Protection
 - Find domains owned by your organization
@@ -264,7 +264,7 @@ strivyr/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please:
 1. Fork the repository
@@ -274,13 +274,13 @@ Contributions are welcome! Please:
 
 ---
 
-## 📝 License
+## License
 
 MIT License - See LICENSE file for details
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [crt.sh](https://crt.sh/) - Free Certificate Transparency API
 - [Who-Dat](https://github.com/Lissy93/who-dat) - Free WHOIS API
@@ -288,7 +288,7 @@ MIT License - See LICENSE file for details
 
 ---
 
-## 📞 Support
+## Support
 
 For issues, feature requests, or questions:
 - Open an issue on GitHub
@@ -296,6 +296,6 @@ For issues, feature requests, or questions:
 
 ---
 
-**Status**: ✅ Production Ready
+**Status**: Production Ready
 **Last Updated**: December 2024
 **Version**: 2.0
