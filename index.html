@@ -56,7 +56,7 @@
               class="domain-input"
               placeholder="example.com"
               required
-              pattern="[a-zA-Z0-9.-]+"
+              pattern="[a-zA-Z0-9.\-]+"
             />
             <button type="submit" class="submit-btn" id="submit-btn">
               Scan Domain
@@ -606,12 +606,17 @@
             'ai': `https://rdap.nic.ai/domain/${domain}`,
             'dev': `https://rdap.nic.google/domain/${domain}`,
             'app': `https://rdap.nic.google/domain/${domain}`,
+            'uk': `https://rdap.nominet.uk/uk/domain/${domain}`,
+            'au': `https://rdap.ausregistry.net.au/rdap/domain/${domain}`,
           };
 
           if (rdapServers[tld]) {
+            console.log(`Trying TLD-specific RDAP server for .${tld}`);
             response = await fetch(rdapServers[tld], {
               headers: { 'Accept': 'application/json' }
             });
+          } else {
+            console.log(`No specific RDAP server for .${tld}, will skip WHOIS for this domain`);
           }
         }
 
@@ -673,7 +678,7 @@
         const registrationEvent = events.find(e => e.eventAction === 'registration');
         const created = registrationEvent?.eventDate || '';
 
-        return {
+        const whoisResult = {
           registrant: registrantEntity || {},
           registrar: registrar,
           nameservers: nameservers,
@@ -681,6 +686,17 @@
           emails: emails,
           organization: organization
         };
+
+        // Debug logging - shows parsed WHOIS data
+        console.log(`✅ RDAP success for ${domain}:`, {
+          organization: organization || '(none)',
+          registrar: registrar || '(none)',
+          emails: emails.length ? emails : '(none)',
+          nameservers: nameservers.length ? nameservers.slice(0, 2) : '(none)',
+          created: created || '(none)'
+        });
+
+        return whoisResult;
 
       } catch (error) {
         console.warn(`RDAP error for ${domain}:`, error);
@@ -715,6 +731,13 @@
           console.warn(`Certificate Transparency logs unavailable for ${domain} - ${result.error || 'service unavailable'}`);
           return { certificates: [], relatedDomains: [] };
         }
+
+        // Debug logging - shows CT log results
+        console.log(`✅ Certificate Transparency success for ${domain}:`, {
+          relatedDomains: result.data.relatedDomains?.length || 0,
+          certificates: result.data.certificates?.length || 0,
+          topRelated: result.data.relatedDomains?.slice(0, 5) || []
+        });
 
         return result.data;
       } catch (error) {
@@ -1349,6 +1372,16 @@
         console.log('displayRelatedDomains cancelled after confidence calculation - newer scan in progress');
         return;
       }
+
+      // Debug logging - show confidence scores
+      console.log(`🎯 Confidence scoring complete for ${originalDomain}:`, {
+        totalAnalyzed: domainsWithConfidence.length,
+        breakdown: domainsWithConfidence.map(d => ({
+          domain: d.domain,
+          confidence: d.confidence,
+          signals: d.signals.map(s => `${s.type}:+${s.points}`)
+        }))
+      });
 
       // Filter out domains with no signals or 0 confidence
       const validDomains = domainsWithConfidence.filter(d => d.confidence > 0 && d.signals.length > 0);
