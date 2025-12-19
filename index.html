@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://survey.strivyr.com; font-src 'self';" />
   <title>Strivyr Survey - Domain Reconnaissance Tool</title>
   <link rel="stylesheet" href="css/styles-modern.css" />
   <link rel="stylesheet" href="css/survey-modern.css" />
@@ -590,38 +591,17 @@
     // Fetch WHOIS data via RDAP (modern WHOIS replacement)
     async function fetchWhoisData(domain) {
       try {
-        // Try RDAP bootstrap service first (supports all TLDs)
-        let response = await fetch(`https://rdap.org/domain/${domain}`, {
-          headers: { 'Accept': 'application/json' }
+        // Call backend RDAP proxy
+        const response = await fetch('https://survey.strivyr.com/api/rdap', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ domain: domain })
         });
 
-        // If RDAP bootstrap fails, try TLD-specific servers
         if (!response.ok) {
-          const tld = domain.split('.').pop();
-          const rdapServers = {
-            'com': `https://rdap.verisign.com/com/v1/domain/${domain}`,
-            'net': `https://rdap.verisign.com/net/v1/domain/${domain}`,
-            'org': `https://rdap.publicinterestregistry.org/rdap/domain/${domain}`,
-            'io': `https://rdap.nic.io/domain/${domain}`,
-            'ai': `https://rdap.nic.ai/domain/${domain}`,
-            'dev': `https://rdap.nic.google/domain/${domain}`,
-            'app': `https://rdap.nic.google/domain/${domain}`,
-            'uk': `https://rdap.nominet.uk/uk/domain/${domain}`,
-            'au': `https://rdap.ausregistry.net.au/rdap/domain/${domain}`,
-          };
-
-          if (rdapServers[tld]) {
-            console.log(`Trying TLD-specific RDAP server for .${tld}`);
-            response = await fetch(rdapServers[tld], {
-              headers: { 'Accept': 'application/json' }
-            });
-          } else {
-            console.log(`No specific RDAP server for .${tld}, will skip WHOIS for this domain`);
-          }
-        }
-
-        if (!response.ok) {
-          console.warn(`RDAP unavailable for ${domain} (${response.status}) - continuing without WHOIS data`);
+          console.warn(`RDAP endpoint returned ${response.status} for ${domain}`);
           return {
             registrant: {},
             registrar: '',
@@ -632,71 +612,23 @@
           };
         }
 
-        const rdapData = await response.json();
+        const result = await response.json();
 
-        // Parse RDAP response
-        const entities = rdapData.entities || [];
-        const registrantEntity = entities.find(e => e.roles?.includes('registrant'));
-        const registrarEntity = entities.find(e => e.roles?.includes('registrar'));
-
-        // Extract nameservers
-        const nameservers = (rdapData.nameservers || []).map(ns => ns.ldhName);
-
-        // Extract emails
-        const emails = [];
-        entities.forEach(entity => {
-          const vcard = entity.vcardArray?.[1] || [];
-          vcard.forEach(field => {
-            if (field[0] === 'email') {
-              emails.push(field[3]);
-            }
-          });
-        });
-
-        // Extract organization
-        let organization = '';
-        if (registrantEntity) {
-          const vcard = registrantEntity.vcardArray?.[1] || [];
-          const orgField = vcard.find(f => f[0] === 'org');
-          if (orgField) {
-            organization = orgField[3];
-          }
+        if (!result.success) {
+          console.warn(`RDAP unavailable for ${domain} - ${result.error || 'service unavailable'}`);
+          return result.data; // Return empty structure from backend
         }
-
-        // Extract registrar
-        let registrar = '';
-        if (registrarEntity) {
-          const vcard = registrarEntity.vcardArray?.[1] || [];
-          const fnField = vcard.find(f => f[0] === 'fn');
-          if (fnField) {
-            registrar = fnField[3];
-          }
-        }
-
-        // Extract creation date
-        const events = rdapData.events || [];
-        const registrationEvent = events.find(e => e.eventAction === 'registration');
-        const created = registrationEvent?.eventDate || '';
-
-        const whoisResult = {
-          registrant: registrantEntity || {},
-          registrar: registrar,
-          nameservers: nameservers,
-          created: created,
-          emails: emails,
-          organization: organization
-        };
 
         // Debug logging - shows parsed WHOIS data
         console.log(`RDAP success for ${domain}:`, {
-          organization: organization || '(none)',
-          registrar: registrar || '(none)',
-          emails: emails.length ? emails : '(none)',
-          nameservers: nameservers.length ? nameservers.slice(0, 2) : '(none)',
-          created: created || '(none)'
+          organization: result.data.organization || '(none)',
+          registrar: result.data.registrar || '(none)',
+          emails: result.data.emails.length ? result.data.emails : '(none)',
+          nameservers: result.data.nameservers.length ? result.data.nameservers.slice(0, 2) : '(none)',
+          created: result.data.created || '(none)'
         });
 
-        return whoisResult;
+        return result.data;
 
       } catch (error) {
         console.warn(`RDAP error for ${domain}:`, error);
@@ -752,34 +684,35 @@
 
       for (const ip of ipAddresses) {
         try {
-          // Use HackerTarget free API (500 requests/day, no API key needed)
-          const response = await fetch(`https://api.hackertarget.com/reverseiplookup/?q=${ip}`);
+          // Call backend reverse IP proxy
+          const response = await fetch('https://survey.strivyr.com/api/reverse-ip', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ip: ip })
+          });
 
           if (!response.ok) {
             console.warn(`Reverse IP lookup failed for ${ip} (${response.status})`);
             continue;
           }
 
-          const text = await response.text();
+          const result = await response.json();
 
-          // Check for error responses
-          if (text.includes('error') || text.includes('invalid')) {
-            console.warn(`Reverse IP lookup returned error for ${ip}: ${text}`);
+          if (!result.success) {
+            console.warn(`Reverse IP lookup returned error for ${ip}: ${result.error}`);
             continue;
           }
 
-          // Parse results (one domain per line)
-          const domains = text
-            .split('\n')
-            .map(d => d.trim())
-            .filter(d => d && d.includes('.') && !d.startsWith('error'));
+          const domains = result.data.domains;
 
           if (domains.length > 0) {
             console.log(`Reverse IP lookup for ${ip}: found ${domains.length} domains`);
             allDomains.push(...domains);
           }
 
-          // Small delay to respect rate limits
+          // Small delay to respect rate limits (backend handles the actual API call)
           await new Promise(resolve => setTimeout(resolve, 300));
 
         } catch (error) {
