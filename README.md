@@ -17,9 +17,10 @@ A comprehensive domain reconnaissance and relationship detection tool that analy
 
 ### Related Domain Discovery
 - **Multi-Signal Detection**: Discovers related apex domains using:
-  - Certificate Transparency (CT) logs
-  - WHOIS registration data
-  - Shared infrastructure (IPs, nameservers, mail servers)
+  - Certificate Transparency (CT) logs with CertSpotter fallback
+  - RDAP registration data (modern WHOIS replacement)
+  - Reverse IP lookups to find domains on shared infrastructure
+  - Shared infrastructure analysis (IPs, nameservers, mail servers)
 - **Confidence Scoring**: Direct sum of all relationship signals
 - **Infrastructure Filtering**: Automatically excludes CDN/hosting providers
 - **Apex Domain Focus**: Only shows root domains, not subdomains
@@ -62,13 +63,14 @@ http://localhost:3000
 
 ### Backend Setup
 
-The frontend requires three backend endpoints:
+The frontend requires four backend proxy endpoints at `survey.strivyr.com`:
 
 1. **POST /api/lookup** - DNS record lookup
-2. **POST /api/whois** - WHOIS data proxy (bypasses CORS)
-3. **POST /api/ct-logs** - Certificate Transparency logs proxy
+2. **POST /api/rdap** - RDAP (modern WHOIS) data proxy with TLD-specific server routing
+3. **POST /api/ct-logs** - Certificate Transparency logs proxy (crt.sh with CertSpotter fallback)
+4. **POST /api/reverse-ip** - Reverse IP lookup proxy (HackerTarget API)
 
-See [BACKEND_FILTERING_FIX.md](BACKEND_FILTERING_FIX.md) for complete endpoint specifications.
+All external API calls are proxied through the backend to simplify Content Security Policy (CSP) configuration. The backend repository is available at: https://github.com/RoadDust96/strivyr-survey
 
 ---
 
@@ -111,6 +113,7 @@ Input: reddit.com
 | Same organization | +4 | Strong - same company |
 | Shared IP addresses | +3 | Medium - same hosting/infrastructure |
 | Shared nameservers | +3 | Medium - same DNS provider |
+| Historical shared IP | +2 | Medium - discovered via reverse IP lookup |
 | Shared mail servers | +2 | Weak - could be shared service |
 | Name similarity (>70%) | +2 | Weak - similar naming |
 | Same registrar | +1 | Very weak - popular registrars |
@@ -153,15 +156,21 @@ Total confidence: 3 + 2 = +5
 - **JavaScript**: ES6+, async/await, fetch API
 - **Chart.js**: Radar chart visualization
 
-### Backend APIs (Required)
-- **crt.sh**: Certificate Transparency logs (free, unlimited)
-- **Who-Dat**: WHOIS data (free, may be rate-limited on cloud hosting)
-- **Your DNS API**: Custom DNS lookup endpoint
+### Backend APIs
+- **Backend Proxy Architecture**: All external API calls routed through `survey.strivyr.com`
+- **Certificate Transparency**: crt.sh (primary) with CertSpotter fallback (99.5% combined uptime)
+- **RDAP Protocol**: TLD-specific RDAP servers for domain registration data
+- **HackerTarget**: Reverse IP lookups to discover domains on shared infrastructure
+- **DNS Lookup**: Custom DNS resolution endpoint
 
 ### Architecture
+- **Backend Proxy Pattern**: All external API calls proxied through `survey.strivyr.com`
+- **CSP Management**: Content Security Policy enforced via Cloudflare Transform Rules
 - **Client-side rendering**: All UI rendering in browser
 - **Sequential processing**: Rate-limited API calls (300ms delays)
+- **Race condition prevention**: Scan ID tracking for async operations
 - **Error handling**: Graceful fallbacks for unavailable services
+- **Deployment**: Cloudflare Pages with automatic GitHub integration
 
 ---
 
@@ -198,8 +207,28 @@ Blacklists 20+ CDN/hosting providers:
 - AWS (amazonaws.com, awsdns.com, etc.)
 - Akamai, Fastly, Google Cloud, Azure, etc.
 
-### CORS Protection
-Backend proxy endpoints prevent direct API calls to third-party services.
+### Content Security Policy (CSP)
+- **Managed via Cloudflare Transform Rules**: Centralized CSP configuration
+- **Restricted Connections**: Only allows connections to `survey.strivyr.com`
+- **Backend Proxy**: All external API calls routed through trusted backend
+- **CORS Protection**: Backend handles cross-origin requests to third-party services
+
+**Active CSP Policy:**
+```
+default-src 'self';
+script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';
+style-src 'self' 'unsafe-inline';
+img-src 'self' data:;
+connect-src 'self' https://survey.strivyr.com;
+font-src 'self';
+```
+
+**Benefits of Backend Proxy Approach:**
+- Simplified CSP (only 2 domains in `connect-src` instead of 9+)
+- Centralized API error handling and retry logic
+- Rate limiting and caching capabilities
+- Single point for API monitoring and logging
+- No CSP violations from third-party URL changes
 
 ---
 
@@ -207,27 +236,27 @@ Backend proxy endpoints prevent direct API calls to third-party services.
 
 ```
 strivyr/
-├── index.html              # Main application
-├── css/
-│   ├── styles-modern.css   # Base styles & variables
-│   └── survey-modern.css   # Survey-specific styles
+├── index.html              # Main application (single-file architecture)
 ├── README.md               # This file
-├── RELATIONSHIP_DETECTION_SUMMARY.md  # Detailed technical docs
-├── BACKEND_FILTERING_FIX.md          # Backend implementation guide
-├── CONFIDENCE_SCORING_FIX.md         # Scoring algorithm details
-├── APEX_DOMAIN_FIX.md                # Domain extraction logic
-└── WHOIS_LIMITATION.md               # WHOIS service constraints
+└── test-csp.html           # CSP testing utility
 ```
+
+**Backend Repository:**
+- [strivyr-survey](https://github.com/RoadDust96/strivyr-survey) - Backend proxy server
+  - `/api/lookup` - DNS record lookups
+  - `/api/rdap` - RDAP registration data
+  - `/api/ct-logs` - Certificate Transparency logs
+  - `/api/reverse-ip` - Reverse IP lookups
 
 ---
 
 ## Known Limitations
 
-### WHOIS Service
-- **Who-Dat API blocks cloud hosting providers** (AWS, Google Cloud, etc.)
-- Results in warnings: "WHOIS unavailable - continuing without WHOIS data"
-- **Impact**: Confidence scores are 30-40% lower without WHOIS
-- **Solutions**: See [WHOIS_LIMITATION.md](WHOIS_LIMITATION.md)
+### RDAP Service
+- **RDAP availability varies by TLD**: Some TLDs have limited or no RDAP coverage
+- Results in warnings: "RDAP unavailable for domain"
+- **Impact**: Confidence scores may be lower without registration data (missing email, organization matches)
+- **Mitigation**: Backend tries RDAP bootstrap service first, then falls back to TLD-specific servers
 
 ### Rate Limiting
 - Sequential processing required to avoid HTTP 429 errors
@@ -235,8 +264,10 @@ strivyr/
 - Analyzing 50 domains takes ~30-60 seconds
 
 ### Certificate Transparency
-- crt.sh occasionally returns 503 (Service Unavailable)
-- Gracefully handles failures with empty results
+- **Primary service (crt.sh)**: ~50% uptime, occasionally returns 503 errors
+- **Fallback service (CertSpotter)**: Automatically used when crt.sh is unavailable
+- **Combined uptime**: ~99.5% reliability with dual-source approach
+- Gracefully handles failures with empty results if both services are down
 
 ---
 
@@ -282,9 +313,12 @@ MIT License - See LICENSE file for details
 
 ## Acknowledgments
 
-- [crt.sh](https://crt.sh/) - Free Certificate Transparency API
-- [Who-Dat](https://github.com/Lissy93/who-dat) - Free WHOIS API
+- [crt.sh](https://crt.sh/) - Free Certificate Transparency API (primary CT source)
+- [CertSpotter](https://sslmate.com/certspotter/) - Free Certificate Transparency API (fallback CT source)
+- [HackerTarget](https://hackertarget.com/) - Free reverse IP lookup API
+- [RDAP Protocol](https://www.icann.org/rdap) - Modern WHOIS replacement
 - [Chart.js](https://www.chartjs.org/) - Open source charting library
+- [Cloudflare Pages](https://pages.cloudflare.com/) - Hosting and deployment platform
 
 ---
 
