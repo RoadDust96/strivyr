@@ -343,6 +343,57 @@
       return apex;
     };
 
+    // Common nameserver provider patterns (infrastructure that shouldn't count as relationship signal)
+    const nameserverProviders = [
+      'awsdns', // AWS Route 53 (e.g., ns-123.awsdns-45.com)
+      'cloudflare.com', // Cloudflare DNS
+      'googledomains.com', // Google Domains
+      'domaincontrol.com', // GoDaddy
+      'registrar-servers.com', // Namecheap
+      'dnsmadeeasy.com', // DNS Made Easy
+      'nsone.net', // NS1
+      'ultradns.', // UltraDNS
+      'dynect.net', // Dyn
+      'azure-dns.', // Microsoft Azure DNS
+      'digitalocean.com', // DigitalOcean DNS
+      'linode.com', // Linode DNS
+      'he.net', // Hurricane Electric
+      'dns.', // Generic DNS services (dns.google, dns.cloudflare, etc.)
+      'nameserver', // Generic nameserver patterns
+    ];
+
+    // Check if a nameserver belongs to infrastructure/hosting provider
+    const isInfrastructureNameserver = (nameserver) => {
+      if (!nameserver) return true; // Treat empty as infrastructure
+      const ns = nameserver.toLowerCase();
+
+      // Check against known nameserver provider patterns
+      return nameserverProviders.some(provider => ns.includes(provider));
+    };
+
+    // Common mail provider patterns (infrastructure that shouldn't count as relationship signal)
+    const mailProviders = [
+      'google.com', 'googlemail.com', 'gmail.com', 'aspmx.l.google.com', // Google Workspace
+      'outlook.com', 'hotmail.com', 'live.com', 'office365.com', 'protection.outlook.com', // Microsoft 365
+      'yahoodns.net', 'yahoo.com', // Yahoo Mail
+      'zoho.com', 'zohomail.com', // Zoho Mail
+      'protonmail.ch', 'protonmail.com', // ProtonMail
+      'mail.ru', 'yandex.ru', // Russian providers
+      'sendgrid.net', 'mailgun.org', 'mailjet.com', // Transactional email services
+      'amazonses.com', // Amazon SES
+      'sparkpostmail.com', 'mcsv.net', 'mandrillapp.com', // Email delivery services
+      'pphosted.com', 'proofpoint.com', 'mimecast.com', 'barracuda.com', // Email security
+    ];
+
+    // Check if a mail server belongs to infrastructure/email provider
+    const isInfrastructureMailServer = (mailServer) => {
+      if (!mailServer) return true; // Treat empty as infrastructure
+      const mx = mailServer.toLowerCase();
+
+      // Check against known mail provider patterns
+      return mailProviders.some(provider => mx.includes(provider));
+    };
+
     // DOM elements
     const domainForm = document.getElementById('domain-form');
     const domainInput = document.getElementById('domain-input');
@@ -391,6 +442,12 @@
         const relatedTabBtn = document.querySelector('.tab-btn[data-tab="related"]');
         if (relatedTabBtn) {
           relatedTabBtn.click();
+
+          // Scroll to the tab navigation smoothly
+          const tabNavigation = document.querySelector('.tab-navigation');
+          if (tabNavigation) {
+            tabNavigation.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
       });
     }
@@ -792,10 +849,20 @@
       // Remove duplicates
       const uniqueRelatedDomains = [...new Set(allRelatedDomains)];
 
-      console.log(`Combined discovery results:`, {
+      // SMART PRIORITIZATION: Scan likely-related domains first
+      // Tier 1 (Highest): Reverse IP discovered domains (proven infrastructure sharing)
+      // Tier 2: CT log domains (potential certificate sharing)
+      const reverseIPSet = new Set(reverseIPDomains.map(d => d.toLowerCase()));
+      const tier1 = uniqueRelatedDomains.filter(d => reverseIPSet.has(d.toLowerCase()));
+      const tier2 = uniqueRelatedDomains.filter(d => !reverseIPSet.has(d.toLowerCase()));
+      const prioritizedDomains = [...tier1, ...tier2];
+
+      console.log(`Combined discovery results (prioritized):`, {
         ctLogDomains: ctData.relatedDomains?.length || 0,
         reverseIPDomains: reverseIPDomains.length,
-        totalUnique: uniqueRelatedDomains.length
+        totalUnique: uniqueRelatedDomains.length,
+        tier1_reverseIP: tier1.length,
+        tier2_ctLogs: tier2.length
       });
 
       // Enhance original data with WHOIS info
@@ -805,8 +872,8 @@
         certificates: ctData.certificates
       };
 
-      // Display related domains with enhanced confidence scoring
-      displayRelatedDomains(domain, uniqueRelatedDomains, enhancedData, scanId, reverseIPDiscoveredDomains);
+      // Display related domains with enhanced confidence scoring (using prioritized order)
+      displayRelatedDomains(domain, prioritizedDomains, enhancedData, scanId, reverseIPDiscoveredDomains);
     }
 
     // Build table data from API response
@@ -1163,11 +1230,15 @@
 
       // Category 3: Infrastructure Overlap (15% weight = up to 3 points)
       if (originalData.dns && relatedData.dns) {
-        // Shared nameservers (2 points)
+        // Shared nameservers (2 points) - but only if they're NOT infrastructure providers
         const nsOverlap = findArrayOverlap(originalData.dns.NS, relatedData.dns.NS);
-        if (nsOverlap.length > 0) {
+
+        // Filter out infrastructure nameservers (GoDaddy, AWS, Cloudflare, etc.)
+        const customNameservers = nsOverlap.filter(ns => !isInfrastructureNameserver(ns));
+
+        if (customNameservers.length > 0) {
           points += 2;
-          signals.push({ type: 'shared_ns', value: `${nsOverlap.length} shared nameservers`, points: 2 });
+          signals.push({ type: 'shared_ns', value: `${customNameservers.length} shared nameservers`, points: 2 });
         }
 
         // Shared IP addresses (3 points)
@@ -1183,16 +1254,20 @@
           signals.push({ type: 'reverse_ip_historical', value: 'Historical shared IP (reverse IP discovery)', points: 2 });
         }
 
-        // Shared mail servers (2 points)
+        // Shared mail servers (2 points) - but only if they're NOT infrastructure providers
         // Check if MX is an array before calling .map()
         if (Array.isArray(originalData.dns.MX) && Array.isArray(relatedData.dns.MX)) {
           const mxOverlap = findArrayOverlap(
             originalData.dns.MX.map(mx => mx.exchange || mx),
             relatedData.dns.MX.map(mx => mx.exchange || mx)
           );
-          if (mxOverlap.length > 0) {
+
+          // Filter out infrastructure mail providers (Google Workspace, Microsoft 365, etc.)
+          const customMailServers = mxOverlap.filter(mx => !isInfrastructureMailServer(mx));
+
+          if (customMailServers.length > 0) {
             points += 2;
-            signals.push({ type: 'shared_mx', value: `${mxOverlap.length} shared mail servers`, points: 2 });
+            signals.push({ type: 'shared_mx', value: `${customMailServers.length} shared mail servers`, points: 2 });
           }
         }
       }
@@ -1305,8 +1380,92 @@
       // Helper function to delay between requests
       const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      // Fetch data sequentially with delays to avoid rate limiting
-      const relatedDataResults = [];
+      // Helper function to retry on rate limit with exponential backoff
+      const fetchWithRetry = async (url, options, maxRetries = 3) => {
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+          try {
+            const response = await fetch(url, options);
+
+            // If rate limited (429), wait and retry with exponential backoff
+            if (response.status === 429) {
+              const waitTime = Math.min(1000 * Math.pow(2, attempt), 8000); // Max 8 seconds
+              console.warn(`Rate limited (429) - retrying in ${waitTime}ms (attempt ${attempt + 1}/${maxRetries})`);
+              await delay(waitTime);
+              continue;
+            }
+
+            return response;
+          } catch (error) {
+            if (attempt === maxRetries - 1) throw error;
+            await delay(1000 * Math.pow(2, attempt));
+          }
+        }
+        throw new Error('Max retries exceeded');
+      };
+
+      // Track valid domains for incremental display
+      const validDomains = [];
+      let analyzedCount = 0;
+
+      // Helper function to render a single domain card
+      const renderDomainCard = (item) => `
+        <div class="related-domain-card" style="background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span style="color: var(--text-primary); font-size: 1.125rem; font-weight: 600;">${sanitizeHTML(item.domain)}</span>
+            <span style="background: var(--accent-primary); color: #ffffff; padding: 0.5rem 1rem; border-radius: 8px; font-size: 1.25rem; font-weight: 700;">+${item.confidence}</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
+            ${item.signals.map(signal => `
+              <span style="background: var(--bg-secondary); border: 1px solid var(--border-default); color: var(--text-secondary); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500;">
+                ${sanitizeHTML(signal.value)} (+${signal.points})
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      // Helper function to update the display with current valid domains
+      const updateDisplay = () => {
+        if (scanId !== currentScanId) return;
+
+        if (validDomains.length === 0) {
+          // Show "analyzing" message while we're still scanning
+          if (analyzedCount < limitedDomains.length) {
+            container.innerHTML = `
+              <div class="spinner-container">
+                <div class="spinner"></div>
+                <span class="spinner-text">Analyzing related domains... (${analyzedCount}/${limitedDomains.length})</span>
+              </div>
+            `;
+          } else {
+            // All scans complete, no valid domains found
+            container.innerHTML = '<p style="color: var(--text-secondary);">No meaningfully related domains found.</p>';
+          }
+        } else {
+          // Render all valid domains sorted by confidence
+          const sortedDomains = [...validDomains].sort((a, b) => b.score - a.score);
+          const cardsHtml = sortedDomains.map(renderDomainCard).join('');
+
+          // Show results with progress indicator if still scanning
+          if (analyzedCount < limitedDomains.length) {
+            container.innerHTML = `
+              ${cardsHtml}
+              <div class="spinner-container" style="margin-top: 1rem;">
+                <div class="spinner"></div>
+                <span class="spinner-text">Finding more... (${analyzedCount}/${limitedDomains.length})</span>
+              </div>
+            `;
+          } else {
+            container.innerHTML = cardsHtml;
+          }
+        }
+
+        // Update preview and stats with current valid domains
+        displayRelatedPreview(validDomains.sort((a, b) => b.score - a.score));
+        updateQuickStats(tableData, validDomains);
+      };
+
+      // INCREMENTAL SCANNING: Display each qualifying domain immediately
       for (let i = 0; i < limitedDomains.length; i++) {
         // Check if scan is still current before each iteration
         if (scanId !== currentScanId) {
@@ -1317,8 +1476,8 @@
         const domain = limitedDomains[i];
 
         try {
-          // Fetch DNS data from your existing API
-          const dnsResponse = await fetch('https://survey.strivyr.com/api/lookup', {
+          // Fetch DNS data with retry logic
+          const dnsResponse = await fetchWithRetry('https://survey.strivyr.com/api/lookup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ domain: domain })
@@ -1340,116 +1499,72 @@
           // Check after async operation
           if (scanId !== currentScanId) return;
 
-          relatedDataResults.push({
+          const relatedData = {
             domain: domain,
             dns: dnsData.dns || {},
             whois: whoisData
-          });
+          };
+
+          // Calculate confidence immediately
+          const confidence = await calculateConfidence(
+            originalDomain,
+            relatedData.domain,
+            originalData,
+            relatedData,
+            reverseIPDiscoveredDomains
+          );
+
+          // Check after confidence calculation
+          if (scanId !== currentScanId) return;
+
+          // If domain qualifies (confidence >= 2), add it and update display immediately
+          if (confidence.confidence >= 2 && confidence.signals.length > 0) {
+            validDomains.push({
+              domain: relatedData.domain,
+              confidence: confidence.confidence,
+              score: confidence.score,
+              signals: confidence.signals
+            });
+
+            console.log(`✓ Found related domain: ${domain} (confidence: +${confidence.confidence})`);
+
+            // Update display immediately to show this new result
+            updateDisplay();
+          }
 
           // Small delay before next domain
           await delay(300);
 
         } catch (error) {
           console.error(`Error fetching data for ${domain}:`, error);
-          relatedDataResults.push({
-            domain: domain,
-            dns: {},
-            whois: {}
-          });
         }
 
-        // Check before updating UI
-        if (scanId !== currentScanId) return;
+        // Increment analyzed count
+        analyzedCount++;
 
-        // Update loading message with progress and spinner
-        container.innerHTML = `
-          <div class="spinner-container">
-            <div class="spinner"></div>
-            <span class="spinner-text">Analyzing related domains... (${i + 1}/${limitedDomains.length})</span>
-          </div>
-        `;
+        // Update progress display
+        if (scanId !== currentScanId) return;
+        updateDisplay();
       }
 
-      // Calculate confidence for each domain with full data
-      const confidencePromises = relatedDataResults.map(async (relatedData) => {
-        const confidence = await calculateConfidence(
-          originalDomain,
-          relatedData.domain,
-          originalData,
-          relatedData,
-          reverseIPDiscoveredDomains
-        );
-        return {
-          domain: relatedData.domain,
-          confidence: confidence.confidence,
-          score: confidence.score,
-          signals: confidence.signals
-        };
-      });
-
-      const domainsWithConfidence = await Promise.all(confidencePromises);
-
-      // Check if scan is still current after confidence calculation
+      // Final update after all scanning complete
       if (scanId !== currentScanId) {
-        console.log('displayRelatedDomains cancelled after confidence calculation - newer scan in progress');
+        console.log('displayRelatedDomains cancelled after scanning - newer scan in progress');
         return;
       }
 
-      // Debug logging - show confidence scores
-      console.log(`Confidence scoring complete for ${originalDomain}:`, {
-        totalAnalyzed: domainsWithConfidence.length,
-        breakdown: domainsWithConfidence.map(d => ({
+      console.log(`Scanning complete for ${originalDomain}:`, {
+        totalAnalyzed: analyzedCount,
+        validDomainsFound: validDomains.length,
+        breakdown: validDomains.map(d => ({
           domain: d.domain,
           confidence: d.confidence,
           signals: d.signals.map(s => `${s.type}:+${s.points}`)
         }))
       });
 
-      // Filter out domains with no signals or 0 confidence
-      const validDomains = domainsWithConfidence.filter(d => d.confidence > 0 && d.signals.length > 0);
-
-      // Sort by confidence score (highest first)
-      validDomains.sort((a, b) => b.score - a.score);
-
-      // Check if we have any valid related domains
-      if (validDomains.length === 0) {
-        // Check again before updating UI
-        if (scanId !== currentScanId) return;
-
-        container.innerHTML = '<p style="color: var(--text-secondary);">No meaningfully related domains found.</p>';
-        displayRelatedPreview([]);
-        updateQuickStats(tableData, []);
-        return;
-      }
-
-      // Final check before rendering results
-      if (scanId !== currentScanId) {
-        console.log('displayRelatedDomains cancelled before rendering - newer scan in progress');
-        return;
-      }
-
-      // Render
-      const html = validDomains.map(item => `
-        <div class="related-domain-card" style="background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-            <span style="color: var(--text-primary); font-size: 1.125rem; font-weight: 600;">${sanitizeHTML(item.domain)}</span>
-            <span style="background: var(--accent-primary); color: #ffffff; padding: 0.5rem 1rem; border-radius: 8px; font-size: 1.25rem; font-weight: 700;">+${item.confidence}</span>
-          </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
-            ${item.signals.map(signal => `
-              <span style="background: var(--bg-secondary); border: 1px solid var(--border-default); color: var(--text-secondary); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500;">
-                ${sanitizeHTML(signal.value)} (+${signal.points})
-              </span>
-            `).join('')}
-          </div>
-        </div>
-      `).join('');
-
-      container.innerHTML = html;
-
-      // Also update the summary preview and stats
-      displayRelatedPreview(validDomains);
-      updateQuickStats(tableData, validDomains);
+      // Final display update
+      updateDisplay();
     }
 
     // Display top 3 related domains in summary preview
