@@ -84,23 +84,29 @@ User enters a domain → Backend fetches DNS records → Display results in tabl
 ```
 Input: reddit.com
     ↓
-1. Fetch CT logs (crt.sh) → Find domains on same certificates
+1. Fetch CT logs via backend (crt.sh with CertSpotter fallback) → Find domains on certificates
     ↓
-2. Extract apex domains → Filter out subdomains (docs.reddit.com → skip)
+2. Perform reverse IP lookups via backend → Find domains on same IPs
     ↓
-3. Filter infrastructure → Remove Cloudflare, AWS, Akamai, etc.
+3. Merge results → Combine CT log domains + reverse IP domains
     ↓
-4. Validate domains → Reject invalid formats (double hyphens, etc.)
+4. Extract apex domains → Filter out subdomains (docs.reddit.com → skip)
     ↓
-5. For each valid domain (sequential, rate-limited):
-   - Fetch DNS records
-   - Fetch WHOIS data
+5. Filter infrastructure → Remove Cloudflare, AWS, Akamai, etc.
+    ↓
+6. Validate domains → Reject invalid formats (double hyphens, etc.)
+    ↓
+7. For each valid domain (sequential, rate-limited):
+   - Fetch DNS records via backend
+   - Fetch RDAP data via backend
    - Calculate confidence score
     ↓
-6. Filter out 0-confidence → Only show domains with actual signals
+8. Filter out 0-confidence → Only show domains with actual signals
     ↓
-7. Display sorted by confidence → Highest first
+9. Display sorted by confidence → Highest first
 ```
+
+**All external API calls are proxied through the backend** for simplified CSP and centralized error handling.
 
 ### 3. Confidence Scoring
 
