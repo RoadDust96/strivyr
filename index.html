@@ -764,9 +764,14 @@
 
           const domains = result.data.domains;
 
+          // Log the raw response for debugging
+          console.log(`Reverse IP lookup response for ${ip}:`, result.data);
+
           if (domains.length > 0) {
-            console.log(`Reverse IP lookup for ${ip}: found ${domains.length} domains`);
+            console.log(`Reverse IP lookup for ${ip}: found ${domains.length} domains - ${JSON.stringify(domains)}`);
             allDomains.push(...domains);
+          } else {
+            console.log(`Reverse IP lookup for ${ip}: no domains found (empty array)`);
           }
 
           // Small delay to respect rate limits (backend handles the actual API call)
@@ -778,9 +783,10 @@
       }
 
       // Remove duplicates
+      console.log(`Total domains before deduplication: ${allDomains.length} domains from ${ipAddresses.length} IPs`);
       const uniqueDomains = [...new Set(allDomains)];
 
-      console.log(`Total reverse IP results: ${uniqueDomains.length} unique domains from ${ipAddresses.length} IPs`);
+      console.log(`Total reverse IP results: ${uniqueDomains.length} unique domains from ${ipAddresses.length} IPs (removed ${allDomains.length - uniqueDomains.length} duplicates)`);
 
       return uniqueDomains;
     }
