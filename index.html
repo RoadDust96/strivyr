@@ -1274,10 +1274,14 @@
 
       // Category 4: Name Similarity (10% weight = up to 2 points)
       const similarity = calculateStringSimilarity(originalDomain, relatedDomain);
-      if (similarity > 0.7) {
-        const simPoints = Math.min(2, Math.round(similarity * 2));
-        points += simPoints;
-        signals.push({ type: 'name_similarity', value: `${Math.round(similarity * 100)}% name match`, points: simPoints });
+      if (similarity > 0.9) {
+        // Very high similarity (>90%) = 2 points
+        points += 2;
+        signals.push({ type: 'name_similarity', value: `${Math.round(similarity * 100)}% name match`, points: 2 });
+      } else if (similarity > 0.7) {
+        // Moderate similarity (70-90%) = 1 point
+        points += 1;
+        signals.push({ type: 'name_similarity', value: `${Math.round(similarity * 100)}% name match`, points: 1 });
       }
 
       // Note: Same TLD removed - too weak a signal (most domains use .com)
@@ -1446,17 +1450,26 @@
           const sortedDomains = [...validDomains].sort((a, b) => b.score - a.score);
           const cardsHtml = sortedDomains.map(renderDomainCard).join('');
 
-          // Show results with progress indicator if still scanning
+          // Debug: Log when we're rendering domains
+          console.log(`📊 Displaying ${validDomains.length} related domains (${analyzedCount}/${limitedDomains.length} analyzed)`);
+
+          // Show results with progress indicator AT THE TOP if still scanning
           if (analyzedCount < limitedDomains.length) {
             container.innerHTML = `
-              ${cardsHtml}
-              <div class="spinner-container" style="margin-top: 1rem;">
+              <div class="spinner-container" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 8px;">
                 <div class="spinner"></div>
-                <span class="spinner-text">Finding more... (${analyzedCount}/${limitedDomains.length})</span>
+                <span class="spinner-text">Finding more related domains... (${analyzedCount}/${limitedDomains.length})</span>
               </div>
+              ${cardsHtml}
             `;
           } else {
-            container.innerHTML = cardsHtml;
+            // Scanning complete - show final count at top
+            container.innerHTML = `
+              <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-elevated); border: 1px solid var(--accent-primary); border-radius: 8px; color: var(--accent-primary); text-align: center; font-weight: 600;">
+                ✓ Scan complete - Found ${validDomains.length} related ${validDomains.length === 1 ? 'domain' : 'domains'}
+              </div>
+              ${cardsHtml}
+            `;
           }
         }
 
@@ -1517,7 +1530,7 @@
           // Check after confidence calculation
           if (scanId !== currentScanId) return;
 
-          // If domain qualifies (confidence >= 2), add it and update display immediately
+          // If domain qualifies (confidence >= 2), add it to the list
           if (confidence.confidence >= 2 && confidence.signals.length > 0) {
             validDomains.push({
               domain: relatedData.domain,
@@ -1527,9 +1540,6 @@
             });
 
             console.log(`✓ Found related domain: ${domain} (confidence: +${confidence.confidence})`);
-
-            // Update display immediately to show this new result
-            updateDisplay();
           }
 
           // Small delay before next domain
@@ -1539,10 +1549,11 @@
           console.error(`Error fetching data for ${domain}:`, error);
         }
 
-        // Increment analyzed count
+        // Increment analyzed count BEFORE updating display
         analyzedCount++;
 
-        // Update progress display
+        // Update display after each domain is processed (whether it qualified or not)
+        // This ensures the user sees incremental progress
         if (scanId !== currentScanId) return;
         updateDisplay();
       }

@@ -121,7 +121,8 @@ Input: reddit.com
 | Shared nameservers | +3 | Medium - same DNS provider |
 | Historical shared IP | +2 | Medium - discovered via reverse IP lookup |
 | Shared mail servers | +2 | Weak - could be shared service |
-| Name similarity (>70%) | +2 | Weak - similar naming |
+| Name similarity (>90%) | +2 | Weak - very similar naming |
+| Name similarity (70-90%) | +1 | Very weak - somewhat similar naming |
 | Same registrar | +1 | Very weak - popular registrars |
 
 **Example:**
