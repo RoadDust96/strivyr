@@ -1196,20 +1196,29 @@
         return false;
       }
 
+      // Extract apex domains for comparison (www.coca-cola.com -> coca-cola.com)
+      const apex1 = extractApexDomain(domain1);
+      const apex2 = extractApexDomain(domain2);
+
       const result = certificates.some(cert => {
         const domains = cert.name_value ? cert.name_value.split('\n') : [];
-        const cleanDomains = domains.map(d => d.replace('*.', '').toLowerCase());
-        const hasMatch = cleanDomains.includes(domain1.toLowerCase()) && cleanDomains.includes(domain2.toLowerCase());
+        // Remove wildcards and convert to lowercase, then extract apex domains
+        const certApexDomains = domains
+          .map(d => d.replace('*.', '').toLowerCase())
+          .map(d => extractApexDomain(d))
+          .filter(d => d); // Remove empty results
+
+        const hasMatch = certApexDomains.includes(apex1) && certApexDomains.includes(apex2);
 
         if (hasMatch) {
-          console.log(`SSL cert MATCH found: ${domain1} and ${domain2} share certificate with domains:`, cleanDomains);
+          console.log(`SSL cert MATCH found: ${domain1} (apex: ${apex1}) and ${domain2} (apex: ${apex2}) share certificate with apex domains:`, certApexDomains);
         }
 
         return hasMatch;
       });
 
       if (!result) {
-        console.log(`SSL cert check: No shared certificate found for ${domain1} vs ${domain2} (checked ${certificates.length} certs)`);
+        console.log(`SSL cert check: No shared certificate found for ${domain1} (apex: ${apex1}) vs ${domain2} (apex: ${apex2}) - checked ${certificates.length} certs`);
       }
 
       return result;
