@@ -878,6 +878,12 @@
         certificates: ctData.certificates
       };
 
+      // Debug: Log certificate data for SSL matching
+      console.log(`Original domain certificate data for ${domain}:`, {
+        certificateCount: enhancedData.certificates?.length || 0,
+        sampleCert: enhancedData.certificates?.[0] || null
+      });
+
       // Display related domains with enhanced confidence scoring (using prioritized order)
       displayRelatedDomains(domain, prioritizedDomains, enhancedData, scanId, reverseIPDiscoveredDomains);
     }
@@ -1185,13 +1191,28 @@
 
     // Helper function to check if domains share certificates
     function domainsShareCertificate(domain1, domain2, certificates) {
-      if (!certificates || !Array.isArray(certificates)) return false;
+      if (!certificates || !Array.isArray(certificates)) {
+        console.log(`SSL cert check: No certificates available for ${domain1} vs ${domain2}`);
+        return false;
+      }
 
-      return certificates.some(cert => {
+      const result = certificates.some(cert => {
         const domains = cert.name_value ? cert.name_value.split('\n') : [];
         const cleanDomains = domains.map(d => d.replace('*.', '').toLowerCase());
-        return cleanDomains.includes(domain1.toLowerCase()) && cleanDomains.includes(domain2.toLowerCase());
+        const hasMatch = cleanDomains.includes(domain1.toLowerCase()) && cleanDomains.includes(domain2.toLowerCase());
+
+        if (hasMatch) {
+          console.log(`SSL cert MATCH found: ${domain1} and ${domain2} share certificate with domains:`, cleanDomains);
+        }
+
+        return hasMatch;
       });
+
+      if (!result) {
+        console.log(`SSL cert check: No shared certificate found for ${domain1} vs ${domain2} (checked ${certificates.length} certs)`);
+      }
+
+      return result;
     }
 
     // Enhanced confidence scoring with WHOIS, DNS, and certificate data
