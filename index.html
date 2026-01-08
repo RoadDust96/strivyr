@@ -1201,9 +1201,21 @@
       const apex2 = extractApexDomain(domain2);
 
       const result = certificates.some(cert => {
-        const domains = cert.name_value ? cert.name_value.split('\n') : [];
-        // Remove wildcards and convert to lowercase, then extract apex domains
-        const certApexDomains = domains
+        // A certificate covers both CN (common_name) and SAN (name_value) domains
+        const allDomains = [];
+
+        // Add common_name (CN) if present
+        if (cert.common_name) {
+          allDomains.push(cert.common_name);
+        }
+
+        // Add all SAN domains from name_value
+        if (cert.name_value) {
+          allDomains.push(...cert.name_value.split('\n'));
+        }
+
+        // Remove wildcards, convert to lowercase, extract apex domains
+        const certApexDomains = allDomains
           .map(d => d.replace('*.', '').toLowerCase())
           .map(d => extractApexDomain(d))
           .filter(d => d); // Remove empty results
