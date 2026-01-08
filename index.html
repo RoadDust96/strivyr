@@ -164,6 +164,17 @@
             <!-- Tab 2: Related Domains -->
             <div id="tab-related" class="tab-content" role="tabpanel">
               <div class="related-domains-container">
+                <!-- Activity Feed -->
+                <div id="activity-feed" class="activity-feed" style="display: none;">
+                  <div class="activity-feed-header" onclick="toggleActivityFeed()">
+                    <h3 style="color: var(--text-primary); font-size: 0.9rem; margin: 0;">Discovery Activity</h3>
+                    <span id="activity-feed-toggle" class="activity-feed-toggle">▼</span>
+                  </div>
+                  <div id="activity-feed-content" class="activity-feed-content">
+                    <!-- Activity items will be added here dynamically -->
+                  </div>
+                </div>
+
                 <div id="related-domains-content">
                   <div class="spinner-container">
                     <div class="spinner"></div>
@@ -1367,6 +1378,74 @@
       return 1 - (distance / Math.max(str1.length, str2.length));
     }
 
+    // Activity Feed Functions
+    function toggleActivityFeed() {
+      const feed = document.getElementById('activity-feed');
+      feed.classList.toggle('collapsed');
+    }
+
+    function showActivityFeed() {
+      const feed = document.getElementById('activity-feed');
+      feed.style.display = 'block';
+      // Clear previous activity
+      document.getElementById('activity-feed-content').innerHTML = '';
+    }
+
+    function hideActivityFeed() {
+      const feed = document.getElementById('activity-feed');
+      feed.style.display = 'none';
+    }
+
+    function addActivityItem(domain, status, data = {}) {
+      const content = document.getElementById('activity-feed-content');
+      const item = document.createElement('div');
+      item.className = `activity-item ${status}`;
+      item.id = `activity-${domain.replace(/\./g, '-')}`;
+
+      let html = `<div class="activity-item-domain">`;
+
+      if (status === 'success') {
+        html += `✓ ${sanitizeHTML(domain)}`;
+        if (data.points) {
+          html += ` <span style="color: var(--neon-cyan); font-weight: 700;">(+${data.points} points)</span>`;
+        }
+      } else if (status === 'scanning') {
+        html += `⏳ ${sanitizeHTML(domain)} - Analyzing signals...`;
+      } else if (status === 'skipped') {
+        html += `⊘ ${sanitizeHTML(domain)} - ${data.reason || 'Below threshold'}`;
+      }
+
+      html += `</div>`;
+
+      // Add signals if present
+      if (data.signals && data.signals.length > 0) {
+        html += `<div class="activity-item-signals">`;
+        data.signals.forEach(signal => {
+          html += `<span class="activity-signal">${sanitizeHTML(signal.value)} (+${signal.points})</span>`;
+        });
+        html += `</div>`;
+      }
+
+      item.innerHTML = html;
+      content.appendChild(item);
+
+      // Auto-scroll to bottom
+      content.scrollTop = content.scrollHeight;
+
+      return item;
+    }
+
+    function updateActivityItem(domain, status, data = {}) {
+      const itemId = `activity-${domain.replace(/\./g, '-')}`;
+      const existingItem = document.getElementById(itemId);
+
+      if (existingItem) {
+        existingItem.remove();
+      }
+
+      addActivityItem(domain, status, data);
+    }
+
     // Display related domains with confidence scores
     async function displayRelatedDomains(originalDomain, relatedDomains, originalData, scanId, reverseIPDiscoveredDomains = new Set()) {
       const container = document.getElementById('related-domains-content');
@@ -1423,6 +1502,9 @@
 
       // Check if scan is still current before showing loading
       if (scanId !== currentScanId) return;
+
+      // Show activity feed
+      showActivityFeed();
 
       // Show loading state with spinner
       container.innerHTML = `
@@ -1539,6 +1621,9 @@
 
         const domain = limitedDomains[i];
 
+        // Add scanning status to activity feed
+        addActivityItem(domain, 'scanning');
+
         try {
           // Fetch DNS data with retry logic
           const dnsResponse = await fetchWithRetry('https://survey.strivyr.com/api/lookup', {
@@ -1590,7 +1675,18 @@
               signals: confidence.signals
             });
 
+            // Update activity feed with success
+            updateActivityItem(domain, 'success', {
+              points: confidence.confidence,
+              signals: confidence.signals
+            });
+
             console.log(`✓ Found related domain: ${domain} (confidence: +${confidence.confidence})`);
+          } else {
+            // Update activity feed with skipped status
+            updateActivityItem(domain, 'skipped', {
+              reason: confidence.signals.length === 0 ? 'No signals found' : `Below threshold (${confidence.confidence} points)`
+            });
           }
 
           // Small delay before next domain
@@ -1598,6 +1694,10 @@
 
         } catch (error) {
           console.error(`Error fetching data for ${domain}:`, error);
+          // Update activity feed with error
+          updateActivityItem(domain, 'skipped', {
+            reason: 'Error fetching data'
+          });
         }
 
         // Increment analyzed count BEFORE updating display
