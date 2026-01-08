@@ -1247,12 +1247,12 @@
           signals.push({ type: 'shared_ns', value: `${customNameservers.length} shared nameservers`, points: 2 });
         }
 
-        // Shared IP addresses (3 points)
+        // Shared IP addresses (2 points)
         // This catches both exact IP matches AND domains found via reverse IP lookup
         const ipOverlap = findArrayOverlap(originalData.dns.A, relatedData.dns.A);
         if (ipOverlap.length > 0) {
-          points += 3;
-          signals.push({ type: 'shared_ip', value: `${ipOverlap.length} shared IPs`, points: 3 });
+          points += 2;
+          signals.push({ type: 'shared_ip', value: `${ipOverlap.length} shared IPs`, points: 2 });
         } else if (reverseIPDiscoveredDomains.has(relatedDomain.toLowerCase())) {
           // Domain was discovered via reverse IP but IPs don't currently match
           // This happens when domains have migrated IPs, use CDNs, or reverse IP data is stale
@@ -1279,15 +1279,18 @@
       }
 
       // Category 4: Name Similarity (10% weight = up to 2 points)
-      const similarity = calculateStringSimilarity(originalDomain, relatedDomain);
-      if (similarity > 0.9) {
-        // Very high similarity (>90%) = 2 points
-        points += 2;
-        signals.push({ type: 'name_similarity', value: `${Math.round(similarity * 100)}% name match`, points: 2 });
-      } else if (similarity > 0.7) {
-        // Moderate similarity (70-90%) = 1 point
-        points += 1;
-        signals.push({ type: 'name_similarity', value: `${Math.round(similarity * 100)}% name match`, points: 1 });
+      // Only apply name matching for domains with 12+ characters
+      if (originalDomain.length >= 12 || relatedDomain.length >= 12) {
+        const similarity = calculateStringSimilarity(originalDomain, relatedDomain);
+        if (similarity > 0.9) {
+          // Very high similarity (>90%) = 2 points
+          points += 2;
+          signals.push({ type: 'name_similarity', value: `${Math.round(similarity * 100)}% name match`, points: 2 });
+        } else if (similarity > 0.7) {
+          // Moderate similarity (70-90%) = 1 point
+          points += 1;
+          signals.push({ type: 'name_similarity', value: `${Math.round(similarity * 100)}% name match`, points: 1 });
+        }
       }
 
       // Note: Same TLD removed - too weak a signal (most domains use .com)
@@ -1536,8 +1539,8 @@
           // Check after confidence calculation
           if (scanId !== currentScanId) return;
 
-          // If domain qualifies (confidence >= 2), add it to the list
-          if (confidence.confidence >= 2 && confidence.signals.length > 0) {
+          // If domain qualifies (confidence >= 3), add it to the list
+          if (confidence.confidence >= 3 && confidence.signals.length > 0) {
             validDomains.push({
               domain: relatedData.domain,
               confidence: confidence.confidence,
