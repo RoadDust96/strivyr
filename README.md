@@ -22,8 +22,10 @@ A comprehensive domain reconnaissance and relationship detection tool that analy
   - Reverse IP lookups to find domains on shared infrastructure
   - Shared infrastructure analysis (IPs, nameservers, mail servers)
 - **Confidence Scoring**: Direct sum of all relationship signals
+- **SSL Certificate Filtering**: 3-layer filtering to eliminate false positives from shared hosting
 - **Infrastructure Filtering**: Automatically excludes CDN/hosting providers
 - **Apex Domain Focus**: Only shows root domains, not subdomains
+- **Live Activity Feed**: Real-time tracking of domain scanning progress with status updates
 
 ### Modern UI/UX
 - **Hybrid Layout**: Compact summary + tabbed details (56% less vertical scroll)
@@ -99,11 +101,13 @@ Input: reddit.com
 7. For each valid domain (sequential, rate-limited):
    - Fetch DNS records via backend
    - Fetch RDAP data via backend
-   - Calculate confidence score
+   - Fetch certificate data via backend
+   - Calculate confidence score with SSL cert filtering
     ↓
 8. Filter out 0-confidence → Only show domains with actual signals
     ↓
 9. Display sorted by confidence → Highest first
+10. Show results in activity feed and related domains tab
 ```
 
 **All external API calls are proxied through the backend** for simplified CSP and centralized error handling.
@@ -112,26 +116,28 @@ Input: reddit.com
 
 **Confidence = Direct sum of all signal points**
 
+**Minimum threshold: 3 points required to show as related domain**
+
 | Signal | Points | Description |
 |--------|--------|-------------|
-| Shared SSL certificate | +5 | Very strong - same certificate authority |
 | Same registrant email | +5 | Very strong - same owner |
 | Same organization | +4 | Strong - same company |
-| Shared IP addresses | +3 | Medium - same hosting/infrastructure |
-| Shared nameservers | +3 | Medium - same DNS provider |
+| Shared SSL certificate | +2 | Medium - same certificate (requires additional signals to pass 3-point threshold) |
+| Shared IP addresses | +2 | Medium - same hosting/infrastructure |
+| Shared nameservers | +2 | Medium - same DNS provider (custom NS only) |
 | Historical shared IP | +2 | Medium - discovered via reverse IP lookup |
-| Shared mail servers | +2 | Weak - could be shared service |
+| Shared mail servers | +2 | Weak - could be shared service (custom mail only) |
 | Name similarity (>90%) | +2 | Weak - very similar naming |
 | Name similarity (70-90%) | +1 | Very weak - somewhat similar naming |
 | Same registrar | +1 | Very weak - popular registrars |
 
 **Example:**
 ```
-redditmedia.com +5
-  - 4 shared IPs (+3)
+redditmedia.com +4
+  - 4 shared IPs (+2)
   - 2 shared mail servers (+2)
 
-Total confidence: 3 + 2 = +5
+Total confidence: 2 + 2 = +4
 ```
 
 ---
@@ -146,6 +152,13 @@ Total confidence: 3 + 2 = +5
 ### Tabbed Details
 - **Tab 1 - Full DNS Records**: Searchable table with pagination
 - **Tab 2 - All Related Domains**: Complete list with signal breakdowns
+
+### Live Activity Feed
+- **Real-time Scanning Updates**: Collapsible feed shows live progress during domain analysis
+- **Status Indicators**: Visual feedback for each domain (success, skipped, error)
+- **Confidence Points**: Displays points earned for each discovered relationship
+- **Signal Details**: Shows specific relationship signals found (shared IPs, SSL certs, etc.)
+- **Collapsible Interface**: Click header to expand/collapse feed during long scans
 
 ### Features
 - Real-time progress: "Analyzing related domains... (5/20)"
@@ -208,8 +221,14 @@ Total confidence: 3 + 2 = +5
 - Rejects consecutive hyphens/dots
 - Limits domain length (3-253 characters)
 
+### SSL Certificate False Positive Prevention
+Multi-layer filtering eliminates false positives from shared hosting certificates:
+- **Hosting Provider Detection**: Rejects certificates from 17+ known hosting providers (GoDaddy, Cloudflare, AWS, Azure, Heroku, Netlify, Vercel, GitHub Pages, Shopify, etc.)
+- **Certificate Size Threshold**: Rejects certificates with more than 30 domains (legitimate company certs typically have 2-30 domains, hosting providers bundle 50-500+ unrelated customer domains)
+- **CN Relevance Check**: Certificate Common Name must be related to at least one of the domains being compared (prevents matches where unrelated domains happen to share a hosting provider's certificate)
+
 ### Infrastructure Filtering
-Blacklists 20+ CDN/hosting providers:
+Blacklists 28+ CDN/hosting providers for domain filtering:
 - Cloudflare (cloudflare.com, cloudflaressl.com, etc.)
 - AWS (amazonaws.com, awsdns.com, etc.)
 - Akamai, Fastly, Google Cloud, Azure, etc.
@@ -243,9 +262,16 @@ font-src 'self';
 
 ```
 strivyr/
-├── index.html              # Main application (single-file architecture)
-├── README.md               # This file
-└── test-csp.html           # CSP testing utility
+├── index.html                          # Main application
+├── README.md                           # Documentation
+├── RELATIONSHIP_DETECTION_SUMMARY.md  # Technical summary of relationship detection
+├── test-csp.html                      # CSP testing utility
+├── css/                               # Stylesheets
+│   ├── styles-modern.css              # Main styles
+│   └── survey-modern.css              # Survey-specific styles
+├── fonts/                             # Custom fonts (Inter)
+├── images/                            # Icons and favicons
+└── js/                                # JavaScript libraries (Chart.js)
 ```
 
 **Backend Repository:**
@@ -338,5 +364,5 @@ For issues, feature requests, or questions:
 ---
 
 **Status**: Production Ready
-**Last Updated**: December 2024
-**Version**: 2.0
+**Last Updated**: January 2025
+**Version**: 2.1

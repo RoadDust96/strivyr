@@ -1340,13 +1340,14 @@
         }
       }
 
-      // Category 2: SSL Certificate Analysis (25% weight = up to 5 points)
+      // Category 2: SSL Certificate Analysis
       // Note: Just appearing in CT logs means nothing - we only score actual certificate sharing
+      // Lowered from +5 to +2 to prevent vendor relationship false positives (requires additional signals to pass threshold)
 
-      // Shared certificate (5 points - very strong signal)
+      // Shared certificate (2 points - medium signal, prevents cert-only matches)
       if (originalData.certificates && domainsShareCertificate(originalDomain, relatedDomain, originalData.certificates)) {
-        points += 5;
-        signals.push({ type: 'shared_cert', value: 'Shared SSL certificate', points: 5 });
+        points += 2;
+        signals.push({ type: 'shared_cert', value: 'Shared SSL certificate', points: 2 });
       }
 
       // Category 3: Infrastructure Overlap (15% weight = up to 3 points)
