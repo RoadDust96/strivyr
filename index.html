@@ -1200,6 +1200,44 @@
       return arr1.filter(item => arr2.includes(item));
     }
 
+    // Known hosting provider and CDN patterns that issue multi-tenant certificates
+    const HOSTING_PROVIDER_PATTERNS = [
+      /.*secureserver\.net$/i,           // GoDaddy
+      /.*cloudflaressl\.com$/i,          // Cloudflare
+      /sni\d*\.cloudflaressl\.com$/i,    // Cloudflare SNI
+      /.*\.cloudfront\.net$/i,           // AWS CloudFront
+      /.*\.amazonaws\.com$/i,            // AWS
+      /.*\.azurewebsites\.net$/i,        // Azure
+      /.*\.herokuapp\.com$/i,            // Heroku
+      /.*\.netlify\.app$/i,              // Netlify
+      /.*\.vercel\.app$/i,               // Vercel
+      /.*\.github\.io$/i,                // GitHub Pages
+      /.*\.wordpress\.com$/i,            // WordPress hosting
+      /.*\.wixdns\.net$/i,               // Wix
+      /.*\.shopifycloud\.com$/i,         // Shopify
+      /.*\.squarespace\.com$/i,          // Squarespace
+      /.*\.webfaction\.com$/i,           // WebFaction
+      /.*\.hostgator\.com$/i,            // HostGator
+      /.*\.bluehost\.com$/i              // BlueHost
+    ];
+
+    // Helper function to check if a CN is from a known hosting provider
+    function isHostingProviderCert(commonName) {
+      if (!commonName) return false;
+      const cleanCN = commonName.replace('*.', '').toLowerCase();
+      return HOSTING_PROVIDER_PATTERNS.some(pattern => pattern.test(cleanCN));
+    }
+
+    // Helper function to check if CN is relevant to the domains being compared
+    function isCNRelevantToDomains(commonName, apex1, apex2) {
+      if (!commonName) return false;
+      const cleanCN = commonName.replace('*.', '').toLowerCase();
+      const cnApex = extractApexDomain(cleanCN);
+
+      // CN should match one of the apex domains we're comparing
+      return cnApex === apex1 || cnApex === apex2;
+    }
+
     // Helper function to check if domains share certificates
     function domainsShareCertificate(domain1, domain2, certificates) {
       if (!certificates || !Array.isArray(certificates)) {
@@ -1212,6 +1250,12 @@
       const apex2 = extractApexDomain(domain2);
 
       const result = certificates.some(cert => {
+        // FILTER 1: Check if CN is from a known hosting provider (immediate reject)
+        if (isHostingProviderCert(cert.common_name)) {
+          console.log(`SSL cert REJECTED: Hosting provider certificate detected (CN: ${cert.common_name})`);
+          return false;
+        }
+
         // A certificate covers both CN (common_name) and SAN (name_value) domains
         const allDomains = [];
 
@@ -1225,19 +1269,37 @@
           allDomains.push(...cert.name_value.split('\n'));
         }
 
+        // FILTER 2: Certificate size threshold - reject certs with too many domains
+        // Legitimate company certs typically have 2-30 domains, hosting providers have 50-500+
+        const MAX_CERT_DOMAINS = 30;
+        if (allDomains.length > MAX_CERT_DOMAINS) {
+          console.log(`SSL cert REJECTED: Too many domains in certificate (${allDomains.length} domains, max ${MAX_CERT_DOMAINS}) - likely shared hosting`);
+          return false;
+        }
+
         // Remove wildcards, convert to lowercase, extract apex domains
         const certApexDomains = allDomains
           .map(d => d.replace('*.', '').toLowerCase())
           .map(d => extractApexDomain(d))
           .filter(d => d); // Remove empty results
 
+        // Check if both domains appear in the certificate
         const hasMatch = certApexDomains.includes(apex1) && certApexDomains.includes(apex2);
 
-        if (hasMatch) {
-          console.log(`SSL cert MATCH found: ${domain1} (apex: ${apex1}) and ${domain2} (apex: ${apex2}) share certificate with apex domains:`, certApexDomains);
+        if (!hasMatch) {
+          return false;
         }
 
-        return hasMatch;
+        // FILTER 3: CN Relevance Check - CN should be related to at least one domain
+        if (!isCNRelevantToDomains(cert.common_name, apex1, apex2)) {
+          console.log(`SSL cert REJECTED: CN not relevant to domains (CN: ${cert.common_name}, domains: ${apex1}, ${apex2})`);
+          return false;
+        }
+
+        // All filters passed - this is a legitimate shared certificate
+        console.log(`SSL cert MATCH found: ${domain1} (apex: ${apex1}) and ${domain2} (apex: ${apex2}) share certificate (CN: ${cert.common_name}, ${allDomains.length} total domains)`);
+
+        return true;
       });
 
       if (!result) {
